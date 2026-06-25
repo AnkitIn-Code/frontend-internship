@@ -22,7 +22,6 @@ const Routes = () => {
       <ScrollToTop />
       <RouterRoutes>
         {/* Define your route here */}
-        <Route path="/" element={<ApplicationTracker />} />
         <Route path="/user-login" element={<UserLogin />} />
         <Route path="/main-dashboard" element={<MainDashboard />} />
         <Route path="/application-tracker" element={<ApplicationTracker />} />

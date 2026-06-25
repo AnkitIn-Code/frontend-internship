@@ -11,12 +11,22 @@ const tabs = [
   { key: 'profile', path: '/user-profile-management', icon: 'User', labelKey: 'nav.profile' },
 ];
 
+const PUBLIC_ROUTES = ['/', '/user-login', '/user-registration'];
+// Pages that provide their own bottom navigation
+const CUSTOM_NAV_ROUTES = ['/resume-tools'];
+
 const BottomNav = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { t } = useTranslation();
 
-  const isActive = (path) => location?.pathname === path;
+  const currentPath = location?.pathname;
+  const isActive = (path) => currentPath === path;
+
+  // Hide on public pages and pages with their own bottom nav
+  if (PUBLIC_ROUTES.includes(currentPath) || CUSTOM_NAV_ROUTES.includes(currentPath)) {
+    return null;
+  }
 
   return (
     <nav className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-card border-t border-border">
