@@ -3,7 +3,6 @@ import { Routes, Route, useLocation } from "react-router-dom";
 import Landing from "./pages/Landing";
 import AppRoutes from "./Routes";
 import StarBackground from "./components/StarBackground";
-import BottomNav from "./components/ui/BottomNav";
 import FloatingChat from "./components/FloatingChat";
 import ConfirmDialog from "./components/layout/ConfirmDialog";
 import { ThemeProvider } from "./context/ThemeContext";
@@ -21,7 +20,7 @@ function App() {
         <StarBackground />
 
         {/* App content layered above background */}
-        <div className="relative z-10 pb-16 md:pb-0">
+        <div className="relative z-10">
           <Routes>
             <Route path="/" element={<Landing />} />
             {/* All other routes (must include /user-login, /user-signup, /user-registration) */}
@@ -30,8 +29,6 @@ function App() {
         </div>
         {/* Only show FloatingChat on authenticated pages */}
         {!isPublicRoute && <FloatingChat />}
-        {/* Bottom navigation for small screens (BottomNav also has its own route guard) */}
-        <BottomNav />
         {/* Global confirm dialog - used by feature modules */}
         <ConfirmDialog />
       </div>
@@ -40,3 +37,4 @@ function App() {
 }
 
 export default App;
+
