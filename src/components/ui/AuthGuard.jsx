@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, Navigate } from 'react-router-dom';
 import Icon from '../AppIcon';
+import { apiUrl } from '../../utils/apiBaseUrl';
 
 const AuthGuard = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(null);
@@ -22,7 +23,7 @@ const AuthGuard = ({ children }) => {
         }
 
         // Validate token with backend
-        const response = await fetch('/api/auth/validate', {
+        const response = await fetch(apiUrl('/auth/validate'), {
           method: 'GET',
           headers: {
             'Authorization': `Bearer ${token}`,

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import Icon from '../components/AppIcon';
 import Button from '../components/ui/Button';
 import { resumeAPI } from '../services/api';
+import { apiUrl } from '../utils/apiBaseUrl';
 
 const UserProfile = () => {
   const [userData, setUserData] = useState(null);
@@ -33,7 +34,7 @@ const UserProfile = () => {
         return;
       }
 
-      const response = await fetch('/api/user/profile', {
+      const response = await fetch(apiUrl('/user/profile'), {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
@@ -64,7 +65,7 @@ const UserProfile = () => {
     try {
       const token = localStorage.getItem('authToken');
       
-      const response = await fetch('/api/user/profile', {
+      const response = await fetch(apiUrl('/user/profile'), {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,
