@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Clock, AlertCircle } from 'lucide-react';
 
 /* ──────────────────────────────────────────────────────────────
    CalendarView  —  shows deadlines from saved internships
@@ -47,10 +47,10 @@ const CalendarView = ({ applications = [], onEventClick }) => {
           title: label,
           subtitle: 'Deadline',
           app,
-          color: 'bg-red-500',
-          dot: 'bg-red-500',
-          textColor: 'text-red-700',
-          bgLight: 'bg-red-50',
+          color: 'bg-rose-500 hover:bg-rose-600',
+          dot: 'bg-rose-500',
+          textColor: 'text-rose-600 dark:text-rose-400',
+          bgLight: 'bg-rose-50/80 dark:bg-rose-950/30 border-rose-200/60 dark:border-rose-900/40',
         });
       }
       if (app.interviewDate) {
@@ -60,10 +60,10 @@ const CalendarView = ({ applications = [], onEventClick }) => {
           title: label,
           subtitle: 'Interview',
           app,
-          color: 'bg-violet-500',
+          color: 'bg-violet-500 hover:bg-violet-600',
           dot: 'bg-violet-500',
-          textColor: 'text-violet-700',
-          bgLight: 'bg-violet-50',
+          textColor: 'text-violet-600 dark:text-violet-400',
+          bgLight: 'bg-violet-50/80 dark:bg-violet-950/30 border-violet-200/60 dark:border-violet-900/40',
         });
       }
       if (app.followUpDate) {
@@ -73,10 +73,10 @@ const CalendarView = ({ applications = [], onEventClick }) => {
           title: label,
           subtitle: 'Follow Up',
           app,
-          color: 'bg-blue-500',
+          color: 'bg-blue-500 hover:bg-blue-600',
           dot: 'bg-blue-500',
-          textColor: 'text-blue-700',
-          bgLight: 'bg-blue-50',
+          textColor: 'text-blue-600 dark:text-blue-400',
+          bgLight: 'bg-blue-50/80 dark:bg-blue-950/30 border-blue-200/60 dark:border-blue-900/40',
         });
       }
     });
@@ -114,27 +114,29 @@ const CalendarView = ({ applications = [], onEventClick }) => {
   return (
     <div className="flex flex-col gap-4">
 
-      {/* ── Month nav ── */}
+      {/* ── Month navigation header ── */}
       <div className="flex items-center justify-between">
-        <span className="text-sm font-bold text-slate-800">
+        <span className="text-sm font-bold text-slate-800 dark:text-slate-100">
           {MONTH_NAMES[currentMonth]} {currentYear}
         </span>
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-1.5">
           <button
             onClick={() => navigate(-1)}
-            className="w-7 h-7 rounded-lg border border-slate-200 flex items-center justify-center text-slate-500 hover:bg-slate-50 hover:border-slate-300 transition-all"
+            aria-label="Previous Month"
+            className="w-7 h-7 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800/90 flex items-center justify-center text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700/80 hover:text-slate-700 dark:hover:text-slate-200 transition-all shadow-xs"
           >
             <ChevronLeft className="w-3.5 h-3.5" />
           </button>
           <button
             onClick={() => setCurrentDate(new Date())}
-            className="px-2 py-1 rounded-lg border border-slate-200 text-[11px] font-bold text-slate-600 hover:bg-slate-50 transition-all"
+            className="px-2.5 py-1 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800/90 text-[11px] font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700/80 transition-all shadow-xs"
           >
             Today
           </button>
           <button
             onClick={() => navigate(1)}
-            className="w-7 h-7 rounded-lg border border-slate-200 flex items-center justify-center text-slate-500 hover:bg-slate-50 hover:border-slate-300 transition-all"
+            aria-label="Next Month"
+            className="w-7 h-7 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800/90 flex items-center justify-center text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700/80 hover:text-slate-700 dark:hover:text-slate-200 transition-all shadow-xs"
           >
             <ChevronRight className="w-3.5 h-3.5" />
           </button>
@@ -142,18 +144,27 @@ const CalendarView = ({ applications = [], onEventClick }) => {
       </div>
 
       {/* ── Legend ── */}
-      <div className="flex items-center gap-3 text-[10px] font-semibold text-slate-500">
-        <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-red-500 inline-block" />Deadline</span>
-        <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-violet-500 inline-block" />Interview</span>
-        <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-blue-500 inline-block" />Follow-up</span>
+      <div className="flex items-center gap-3.5 text-[10px] font-medium text-slate-500 dark:text-slate-400">
+        <span className="flex items-center gap-1.5">
+          <span className="w-2 h-2 rounded-full bg-rose-500 inline-block shadow-xs" />
+          Deadline
+        </span>
+        <span className="flex items-center gap-1.5">
+          <span className="w-2 h-2 rounded-full bg-violet-500 inline-block shadow-xs" />
+          Interview
+        </span>
+        <span className="flex items-center gap-1.5">
+          <span className="w-2 h-2 rounded-full bg-blue-500 inline-block shadow-xs" />
+          Follow-up
+        </span>
       </div>
 
       {/* ── Grid ── */}
-      <div className="rounded-xl border border-slate-100 overflow-hidden">
+      <div className="rounded-2xl border border-slate-200/80 dark:border-slate-800 overflow-hidden bg-white dark:bg-slate-900 shadow-xs">
         {/* Weekday headers */}
-        <div className="grid grid-cols-7 border-b border-slate-100 bg-slate-50">
+        <div className="grid grid-cols-7 border-b border-slate-200/80 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-850">
           {WEEK_DAYS.map(d => (
-            <div key={d} className="py-1.5 text-center text-[10px] font-bold text-slate-400 uppercase tracking-wide">
+            <div key={d} className="py-2 text-center text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
               {d}
             </div>
           ))}
@@ -163,41 +174,49 @@ const CalendarView = ({ applications = [], onEventClick }) => {
         <div className="grid grid-cols-7">
           {/* Empty cells before month start */}
           {Array.from({ length: firstDayWeekday }, (_, i) => (
-            <div key={`e-${i}`} className="min-h-[52px] border-r border-b border-slate-50 bg-slate-50/50" />
+            <div
+              key={`e-${i}`}
+              className="min-h-[52px] border-r border-b border-slate-100 dark:border-slate-800/50 bg-slate-50/30 dark:bg-slate-900/30"
+            />
           ))}
 
           {Array.from({ length: daysInMonth }, (_, i) => {
-            const day   = i + 1;
-            const dayEvts = getDayEvents(day);
+            const day          = i + 1;
+            const dayEvts      = getDayEvents(day);
             const isCurrentDay = isToday(day);
-            const col   = (i + firstDayWeekday) % 7;
-            const isLastCol = col === 6;
+            const col          = (i + firstDayWeekday) % 7;
+            const isLastCol    = col === 6;
 
             return (
               <div
                 key={day}
-                className={`min-h-[52px] p-1 border-b border-slate-100 cursor-default transition-colors
-                  ${isLastCol ? '' : 'border-r'}
-                  ${isCurrentDay ? 'bg-indigo-50/70' : 'hover:bg-slate-50/80'}
+                className={`min-h-[52px] p-1 border-b border-slate-100 dark:border-slate-800/60 cursor-default transition-colors flex flex-col justify-between
+                  ${isLastCol ? '' : 'border-r border-slate-100 dark:border-slate-800/60'}
+                  ${isCurrentDay ? 'bg-indigo-50/80 dark:bg-indigo-950/40' : 'hover:bg-slate-50/70 dark:hover:bg-slate-800/40'}
                 `}
               >
-                <div className={`text-[11px] font-bold mb-0.5 w-5 h-5 flex items-center justify-center rounded-full
-                  ${isCurrentDay ? 'bg-indigo-600 text-white' : 'text-slate-700'}`}>
+                <div className={`text-[11px] font-bold mb-0.5 w-5 h-5 flex items-center justify-center rounded-full transition-all
+                  ${isCurrentDay
+                    ? 'bg-indigo-600 text-white font-black shadow-xs shadow-indigo-500/30'
+                    : 'text-slate-700 dark:text-slate-300'}`}>
                   {day}
                 </div>
+
                 <div className="space-y-0.5">
                   {dayEvts.slice(0, 2).map(evt => (
                     <button
                       key={evt.id}
                       onClick={() => onEventClick?.(evt)}
-                      className={`w-full text-left px-1 py-0.5 rounded text-[9px] font-semibold truncate ${evt.color} text-white leading-tight`}
+                      className={`w-full text-left px-1.5 py-0.5 rounded-md text-[9px] font-semibold truncate ${evt.color} text-white leading-tight transition-transform active:scale-95 shadow-xs`}
                       title={`${evt.subtitle}: ${evt.title}`}
                     >
                       {evt.subtitle}
                     </button>
                   ))}
                   {dayEvts.length > 2 && (
-                    <div className="text-[9px] text-slate-400 px-1">+{dayEvts.length - 2}</div>
+                    <div className="text-[9px] text-slate-400 dark:text-slate-500 px-1 font-bold">
+                      +{dayEvts.length - 2}
+                    </div>
                   )}
                 </div>
               </div>
@@ -208,8 +227,17 @@ const CalendarView = ({ applications = [], onEventClick }) => {
 
       {/* ── Upcoming events list ── */}
       {upcomingEvents.length > 0 && (
-        <div>
-          <h3 className="text-xs font-bold text-slate-700 mb-2 uppercase tracking-wide">Upcoming</h3>
+        <div className="mt-1">
+          <div className="flex items-center justify-between mb-2.5">
+            <h3 className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
+              <Clock className="w-3.5 h-3.5 text-indigo-500" />
+              Upcoming Events
+            </h3>
+            <span className="text-[10px] font-semibold text-slate-400 dark:text-slate-500">
+              {upcomingEvents.length} scheduled
+            </span>
+          </div>
+
           <div className="space-y-2">
             {upcomingEvents.map(evt => {
               const dt = new Date(evt.dateStr);
@@ -219,14 +247,18 @@ const CalendarView = ({ applications = [], onEventClick }) => {
                 <button
                   key={evt.id}
                   onClick={() => onEventClick?.(evt)}
-                  className={`w-full text-left flex items-center gap-3 p-2.5 rounded-xl ${evt.bgLight} border border-transparent hover:border-slate-200 transition-all`}
+                  className={`w-full text-left flex items-center gap-2.5 p-2.5 rounded-xl ${evt.bgLight} border transition-all hover:scale-[1.01] active:scale-[0.99] group`}
                 >
                   <span className={`w-2 h-2 rounded-full ${evt.dot} shrink-0`} />
                   <div className="flex-1 min-w-0">
-                    <p className="text-xs font-bold text-slate-900 truncate">{evt.title}</p>
-                    <p className={`text-[10px] font-semibold ${evt.textColor}`}>{evt.subtitle}</p>
+                    <p className="text-xs font-bold text-slate-900 dark:text-slate-100 truncate group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+                      {evt.title}
+                    </p>
+                    <p className={`text-[10px] font-semibold ${evt.textColor}`}>
+                      {evt.subtitle} · {dt.toLocaleDateString('en-IN', { month: 'short', day: 'numeric' })}
+                    </p>
                   </div>
-                  <span className="text-[10px] font-bold text-slate-500 shrink-0 bg-white px-2 py-0.5 rounded-full border border-slate-200">
+                  <span className="text-[10px] font-bold text-slate-600 dark:text-slate-300 shrink-0 bg-white/90 dark:bg-slate-800/90 px-2 py-0.5 rounded-full border border-slate-200/80 dark:border-slate-700/80 shadow-xs">
                     {label}
                   </span>
                 </button>
@@ -237,9 +269,12 @@ const CalendarView = ({ applications = [], onEventClick }) => {
       )}
 
       {upcomingEvents.length === 0 && (
-        <div className="text-center py-4">
-          <p className="text-xs text-slate-400 font-medium">No upcoming deadlines</p>
-          <p className="text-[10px] text-slate-300 mt-1">Set deadlines on saved internships to see them here</p>
+        <div className="text-center py-6 px-3 rounded-2xl bg-slate-50/50 dark:bg-slate-850/50 border border-dashed border-slate-200 dark:border-slate-800 mt-1">
+          <CalendarIcon className="w-8 h-8 text-slate-300 dark:text-slate-600 mx-auto mb-2 opacity-60" />
+          <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold">No upcoming events</p>
+          <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-0.5">
+            Click "Set Date" on any saved card to schedule reminders
+          </p>
         </div>
       )}
     </div>

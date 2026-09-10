@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import Icon from '../../components/AppIcon';
-import { applicationsAPI } from '../../services/api';
+import Icon from './AppIcon';
+import { applicationsAPI } from '../services/api';
 
 /**
  * InternshipDetailModal
@@ -91,46 +91,46 @@ const InternshipDetailModal = ({ internship, onClose }) => {
   };
 
   const sourceColors = {
-    LinkedIn:    'bg-blue-100 text-blue-700',
-    Internshala: 'bg-violet-100 text-violet-700',
-    Naukri:      'bg-orange-100 text-orange-700',
-    Arbeitnow:   'bg-emerald-100 text-emerald-700',
-    Remotive:    'bg-cyan-100 text-cyan-700',
-    Findwork:    'bg-indigo-100 text-indigo-700',
-    default:     'bg-gray-100 text-gray-600',
+    LinkedIn:    'bg-blue-100 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300',
+    Internshala: 'bg-violet-100 text-violet-700 dark:bg-violet-950/60 dark:text-violet-300',
+    Naukri:      'bg-orange-100 text-orange-700 dark:bg-orange-950/60 dark:text-orange-300',
+    Arbeitnow:   'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300',
+    Remotive:    'bg-cyan-100 text-cyan-700 dark:bg-cyan-950/60 dark:text-cyan-300',
+    Findwork:    'bg-indigo-100 text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-300',
+    default:     'bg-gray-100 text-gray-600 dark:bg-slate-800 dark:text-slate-300',
   };
   const srcColor = sourceColors[internship.source] || sourceColors.default;
 
   return (
     /* Backdrop */
     <div
-      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
       {/* Toast notification */}
       {toast && (
-        <div className="fixed top-6 left-1/2 -translate-x-1/2 z-[60] bg-slate-900 text-white text-sm font-semibold px-5 py-3 rounded-2xl shadow-xl animate-fade-in">
+        <div className="fixed top-6 left-1/2 -translate-x-1/2 z-[60] bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900 text-sm font-semibold px-5 py-3 rounded-2xl shadow-xl animate-fade-in">
           {toast}
         </div>
       )}
 
       {/* Modal Panel */}
-      <div className="relative bg-white rounded-3xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl animate-scale-in">
+      <div className="relative bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl animate-scale-in">
 
         {/* Close button */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 z-10 w-9 h-9 flex items-center justify-center rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 hover:text-slate-900 transition-colors"
+          className="absolute top-4 right-4 z-10 w-9 h-9 flex items-center justify-center rounded-xl bg-white/20 hover:bg-white/30 text-white transition-colors backdrop-blur-sm"
         >
           <Icon name="X" size={18} />
         </button>
 
         {/* Header gradient */}
-        <div className="bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-700 px-6 pt-8 pb-10 rounded-t-3xl">
+        <div className="bg-gradient-to-br from-indigo-600 via-indigo-700 to-violet-800 px-6 pt-8 pb-10 rounded-t-3xl">
           <div className="flex items-start gap-4">
             {/* Company logo */}
-            <div className="w-16 h-16 rounded-2xl bg-white/20 border border-white/30 flex items-center justify-center shrink-0 overflow-hidden shadow-lg">
-              {logo ? (
+            <div className="w-16 h-16 rounded-2xl bg-white/20 border border-white/30 flex items-center justify-center shrink-0 overflow-hidden shadow-lg backdrop-blur-sm">
+              {logo && !logo.includes('backend.talentd.in') ? (
                 <img src={logo} alt={company} className="w-10 h-10 object-contain"
                   onError={(e) => { e.target.style.display = 'none'; }} />
               ) : (
@@ -144,7 +144,7 @@ const InternshipDetailModal = ({ internship, onClose }) => {
               <h2 className="text-xl font-extrabold text-white leading-tight mb-1">
                 {internship.title}
               </h2>
-              <p className="text-blue-100 font-semibold text-sm">{company}</p>
+              <p className="text-indigo-100 font-semibold text-sm">{company}</p>
 
               {/* Badges */}
               <div className="flex flex-wrap gap-2 mt-3">
@@ -178,8 +178,8 @@ const InternshipDetailModal = ({ internship, onClose }) => {
               disabled={!!saving}
               className={`flex items-center justify-center gap-2 py-3 rounded-2xl text-sm font-bold transition-all border ${
                 saved === 'want_to_apply'
-                  ? 'bg-indigo-600 text-white border-indigo-600 shadow-lg shadow-indigo-100'
-                  : 'bg-indigo-50 text-indigo-700 border-indigo-100 hover:bg-indigo-100'
+                  ? 'bg-indigo-600 text-white border-indigo-600 shadow-lg shadow-indigo-500/20'
+                  : 'bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 border-indigo-100 dark:border-indigo-900/50 hover:bg-indigo-100 dark:hover:bg-indigo-900/50'
               } disabled:opacity-60 disabled:cursor-wait`}
             >
               {saving === 'want_to_apply' ? (
@@ -195,8 +195,8 @@ const InternshipDetailModal = ({ internship, onClose }) => {
               disabled={!!saving}
               className={`flex items-center justify-center gap-2 py-3 rounded-2xl text-sm font-bold transition-all border ${
                 saved === 'wishlist'
-                  ? 'bg-amber-500 text-white border-amber-500 shadow-lg shadow-amber-100'
-                  : 'bg-amber-50 text-amber-700 border-amber-100 hover:bg-amber-100'
+                  ? 'bg-amber-500 text-white border-amber-500 shadow-lg shadow-amber-500/20'
+                  : 'bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border-amber-100 dark:border-amber-900/50 hover:bg-amber-100 dark:hover:bg-amber-900/50'
               } disabled:opacity-60 disabled:cursor-wait`}
             >
               {saving === 'wishlist' ? (
@@ -216,12 +216,12 @@ const InternshipDetailModal = ({ internship, onClose }) => {
               { icon: 'DollarSign', label: 'Stipend', value: internship.stipend ? `₹${internship.stipend.toLocaleString()}` : 'Not disclosed' },
               { icon: 'Calendar', label: 'Posted',    value: internship.postedAt ? formatDate(internship.postedAt) : 'Recently' },
             ].map(({ icon, label, value }) => (
-              <div key={label} className="bg-slate-50 rounded-xl p-3 text-center">
-                <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-2">
-                  <Icon name={icon} size={15} className="text-blue-600" />
+              <div key={label} className="bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800 rounded-xl p-3 text-center">
+                <div className="w-8 h-8 bg-indigo-100 dark:bg-indigo-950/60 rounded-lg flex items-center justify-center mx-auto mb-2">
+                  <Icon name={icon} size={15} className="text-indigo-600 dark:text-indigo-400" />
                 </div>
-                <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wide mb-0.5">{label}</p>
-                <p className="text-xs font-bold text-slate-800 leading-tight">{value}</p>
+                <p className="text-[10px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wide mb-0.5">{label}</p>
+                <p className="text-xs font-bold text-slate-800 dark:text-slate-200 leading-tight">{value}</p>
               </div>
             ))}
           </div>
@@ -229,13 +229,13 @@ const InternshipDetailModal = ({ internship, onClose }) => {
           {/* Skills */}
           {skills.length > 0 && (
             <div>
-              <h3 className="text-sm font-bold text-slate-800 mb-2 flex items-center gap-2">
-                <Icon name="Code" size={16} className="text-blue-600" />
+              <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200 mb-2 flex items-center gap-2">
+                <Icon name="Code" size={16} className="text-indigo-600 dark:text-indigo-400" />
                 Required Skills
               </h3>
               <div className="flex flex-wrap gap-2">
                 {skills.map((s, i) => (
-                  <span key={i} className="px-3 py-1 bg-blue-50 border border-blue-100 text-blue-700 text-xs font-semibold rounded-full">
+                  <span key={i} className="px-3 py-1 bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-100 dark:border-indigo-900/50 text-indigo-700 dark:text-indigo-300 text-xs font-semibold rounded-full">
                     {s}
                   </span>
                 ))}
@@ -246,11 +246,11 @@ const InternshipDetailModal = ({ internship, onClose }) => {
           {/* Description */}
           {internship.description && (
             <div>
-              <h3 className="text-sm font-bold text-slate-800 mb-2 flex items-center gap-2">
-                <Icon name="FileText" size={16} className="text-blue-600" />
+              <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200 mb-2 flex items-center gap-2">
+                <Icon name="FileText" size={16} className="text-indigo-600 dark:text-indigo-400" />
                 About the Role
               </h3>
-              <p className="text-sm text-slate-600 leading-relaxed whitespace-pre-line">
+              <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed whitespace-pre-line">
                 {internship.description.replace(/<[^>]+>/g, '').slice(0, 800)}
                 {internship.description.length > 800 && '…'}
               </p>
@@ -259,12 +259,12 @@ const InternshipDetailModal = ({ internship, onClose }) => {
 
           {/* AI Reasoning */}
           {internship.aiReasoning && (
-            <div className="bg-primary/5 border border-primary/20 rounded-xl p-4">
+            <div className="bg-indigo-50/50 dark:bg-indigo-950/30 border border-indigo-200/50 dark:border-indigo-800/50 rounded-xl p-4">
               <div className="flex items-center gap-2 mb-2">
-                <Icon name="Sparkles" size={16} className="text-primary" />
-                <span className="text-sm font-bold text-primary">Why this matches you</span>
+                <Icon name="Sparkles" size={16} className="text-indigo-600 dark:text-indigo-400" />
+                <span className="text-sm font-bold text-indigo-700 dark:text-indigo-300">Why this matches you</span>
               </div>
-              <p className="text-sm text-muted-foreground leading-relaxed">{internship.aiReasoning}</p>
+              <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">{internship.aiReasoning}</p>
             </div>
           )}
 
@@ -273,21 +273,21 @@ const InternshipDetailModal = ({ internship, onClose }) => {
             <button
               onClick={handleApply}
               disabled={!internship.url}
-              className="flex-1 py-3 px-6 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold text-sm shadow-lg shadow-blue-200 transition-all flex items-center justify-center gap-2"
+              className="flex-1 py-3 px-6 rounded-2xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold text-sm shadow-lg shadow-indigo-500/25 transition-all flex items-center justify-center gap-2"
             >
               <Icon name="ExternalLink" size={16} />
               Apply Now
             </button>
             <button
               onClick={onClose}
-              className="px-5 py-3 rounded-2xl border border-slate-200 bg-white text-slate-700 font-bold text-sm hover:bg-slate-50 transition-colors"
+              className="px-5 py-3 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 font-bold text-sm hover:bg-slate-50 dark:hover:bg-slate-750 transition-colors"
             >
               Close
             </button>
           </div>
 
           {/* Note */}
-          <p className="text-[11px] text-slate-400 text-center">
+          <p className="text-[11px] text-slate-400 dark:text-slate-500 text-center">
             Clicking "Apply Now" will open the original job posting in a new tab.
           </p>
         </div>

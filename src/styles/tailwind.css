@@ -1,5 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&family=JetBrains+Mono:wght@400;500&display=swap');
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -7,20 +6,20 @@
 @layer base {
   /* ── LIGHT MODE (default) ─────────────────────────────────────── */
   :root {
-    --color-background: #F7F9FC;
-    --color-foreground: #111827;
-    --color-border: #E5E7EB;
+    --color-background: #F8FAFC;
+    --color-foreground: #0F172A;
+    --color-border: #E2E8F0;
     --color-input: #FFFFFF;
     --color-ring: #4F46E5;
 
     --color-card: #FFFFFF;
-    --color-card-foreground: #111827;
+    --color-card-foreground: #0F172A;
 
     --color-popover: #FFFFFF;
-    --color-popover-foreground: #111827;
+    --color-popover-foreground: #0F172A;
 
-    --color-muted: #F3F4F6;
-    --color-muted-foreground: #6B7280;
+    --color-muted: #F1F5F9;
+    --color-muted-foreground: #64748B;
 
     --color-primary: #4F46E5;
     --color-primary-foreground: #FFFFFF;
@@ -42,11 +41,6 @@
 
     --color-error: #EF4444;
     --color-error-foreground: #FFFFFF;
-
-    --star-color: rgba(120, 125, 150, 0.7);
-    --star-glow: rgba(120, 125, 150, 0.35);
-    --meteor-core: rgba(120, 125, 150, 1);
-    --meteor-tail: rgba(120, 125, 150, 0);
 
     --gradient-primary: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%);
     --gradient-success: linear-gradient(135deg, #059669 0%, #0D9488 100%);
@@ -99,11 +93,6 @@
 
     --color-error: #F87171;
     --color-error-foreground: #FFFFFF;
-
-    --star-color: rgba(160, 165, 210, 0.8);
-    --star-glow: rgba(160, 165, 210, 0.4);
-    --meteor-core: rgba(160, 165, 210, 1);
-    --meteor-tail: rgba(160, 165, 210, 0);
 
     /* Glass — dark */
     --glass-bg: rgba(26, 29, 46, 0.85);
@@ -310,24 +299,6 @@
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
-
-  /* Starry background */
-  .star {
-    @apply absolute rounded-full;
-    background-color: var(--star-color);
-    box-shadow: 0 0 10px 2px var(--star-glow);
-  }
-  .meteor {
-    @apply absolute rounded-full;
-    background: linear-gradient(to right, var(--meteor-core), color-mix(in oklab, var(--meteor-core) 70%, transparent), var(--meteor-tail));
-    box-shadow: 0 0 10px 5px color-mix(in oklab, var(--meteor-core) 35%, transparent);
-  }
-  @keyframes meteor {
-    0% { transform: rotate(215deg) translateX(0); opacity: 1; }
-    70% { opacity: 1; }
-    100% { transform: rotate(215deg) translateX(-500px); opacity: 0; }
-  }
-  .animate-meteor { animation: meteor 5s linear infinite; }
 
   @keyframes pulse-glow {
     0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }

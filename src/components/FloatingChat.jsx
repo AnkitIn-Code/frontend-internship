@@ -1,5 +1,4 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { useLocation } from "react-router-dom";
 import { chatAPI } from "../services/api";
 
 const FloatingChat = () => {
@@ -13,11 +12,6 @@ const FloatingChat = () => {
     },
   ]);
   const listRef = useRef(null);
-  const location = useLocation();
-
-  // On resume-tools page, the AiResumeBuilder has its own bottom tab bar (~70px),
-  // so push the chat button higher on mobile to avoid overlap
-  const isResumeToolsPage = location?.pathname === '/resume-tools';
 
   const toggleOpen = () => setIsOpen((prev) => !prev);
 
@@ -62,17 +56,12 @@ const FloatingChat = () => {
     []
   );
 
-  // On mobile + resume-tools: push button above the Edit/Preview tab bar
-  const buttonPositionClass = isResumeToolsPage
-    ? "fixed bottom-24 md:bottom-6 right-6 z-50"
-    : "fixed bottom-6 right-6 z-50";
-
   return (
     <>
       <button
         type="button"
         onClick={toggleOpen}
-        className={`${buttonPositionClass} h-14 w-14 rounded-full shadow-lg text-white transition-transform duration-200 ${gradientClass} ${
+        className={`fixed bottom-6 right-6 z-50 h-14 w-14 rounded-full shadow-lg text-white transition-transform duration-200 ${gradientClass} ${
           isOpen ? "scale-95" : "scale-100"
         }`}
         aria-label={isOpen ? "Close chat" : "Open chat"}

@@ -1,54 +1,20 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Header from '../../components/ui/Header';
 import HelpDeskWidget from '../../components/ui/HelpDeskWidget';
 import RecommendationPreview from './components/RecommendationPreview';
-import QuickActions from './components/QuickActions';
-import InternshipDetailModal from '../internship-recommendations/InternshipDetailModal';
+import CareerPreferencesCard from './components/CareerPreferencesCard';
+import InternshipDetailModal from '../../components/InternshipDetailModal';
 import { userAPI, internshipAPI, resumeAPI } from '../../services/api';
-import { calcProfileCompletion } from '../../utils/profileCompletion';
 import {
   Terminal, User, Upload, FileText, Award, Briefcase,
   MapPin, Code, Building2, CheckCircle2, AlertCircle,
-  Loader2, X, Plus, Zap,
+  Loader2, X, Plus, Zap, Compass, Sparkles, ArrowRight,
+  TrendingUp, Check, ExternalLink
 } from 'lucide-react';
 
-/* ─── Circular Progress ──────────────────────────────────────────────────── */
-const CircularProgress = ({ pct }) => {
-  const r = 40;
-  const circ = 2 * Math.PI * r;
-  const dash = (pct / 100) * circ;
-  return (
-    <div className="relative flex items-center justify-center shrink-0" style={{ width: 100, height: 100 }}>
-      <svg width="100" height="100" viewBox="0 0 100 100" style={{ transform: 'rotate(-90deg)' }}>
-        <circle cx="50" cy="50" r={r} fill="none" className="stroke-muted" strokeWidth="8" />
-        <circle
-          cx="50" cy="50" r={r} fill="none"
-          stroke="url(#cpg)" strokeWidth="8"
-          strokeDasharray={`${dash} ${circ - dash}`}
-          strokeLinecap="round"
-          style={{ transition: 'stroke-dasharray 0.8s ease' }}
-        />
-        <defs>
-          <linearGradient id="cpg" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stopColor="var(--color-primary)" />
-            <stop offset="100%" stopColor="#a855f7" />
-          </linearGradient>
-        </defs>
-      </svg>
-      <div className="absolute flex flex-col items-center">
-        <span className="text-lg font-extrabold text-foreground">{pct}%</span>
-        <span className="text-[9px] font-bold uppercase tracking-widest text-primary">COMPLETE</span>
-      </div>
-    </div>
-  );
-};
-
-
-/* ═══════════════════════════════════════════════════════════════════════════ */
 const MainDashboard = () => {
   const navigate = useNavigate();
-  const [userData, setUserData]         = useState({ name: '', profileCompletion: 0 });
+  const [userData, setUserData]         = useState({ name: '', email: '', profile: {} });
   const [userSkills, setUserSkills]     = useState([]);
   const [internships, setInternships]   = useState([]);
   const [resumeUploaded, setResumeUploaded] = useState(false);
@@ -61,7 +27,7 @@ const MainDashboard = () => {
   const [uploadError, setUploadError]     = useState('');
   const [uploadSuccess, setUploadSuccess] = useState('');
 
-  /* ATS score state (loaded from DB on mount) */
+  /* ATS score state */
   const [atsScore, setAtsScore]           = useState(null);
   const [atsSkills, setAtsSkills]         = useState([]);
 
@@ -70,7 +36,7 @@ const MainDashboard = () => {
 
   const handleNavigate = (r) => navigate(r);
 
-  /* ── load profile ──────────────────────────────────────────────────────── */
+  /* ── Load Profile ── */
   const loadUserProfile = async () => {
     try {
       const profileRes = await userAPI.getProfile();
@@ -80,15 +46,16 @@ const MainDashboard = () => {
         const resumeSkills  = Array.isArray(user?.resume?.skills) ? user.resume.skills : [];
         const profileSkills = Array.isArray(profile?.skills)       ? profile.skills    : [];
         const combinedSkills = resumeSkills.length > 0 ? resumeSkills : profileSkills;
-        const completion = calcProfileCompletion(profile, user);
-        setUserData({ name: user?.name, email: user?.email, profile, profileCompletion: completion });
+
+        setUserData({ name: user?.name, email: user?.email, profile });
         setUserSkills(combinedSkills);
+
         const resume    = user?.resume;
         const hasResume = Boolean(resume?.text || resume?.fileName) ||
           (Array.isArray(resume?.skills) && resume.skills.length > 0);
         setResumeUploaded(hasResume);
         setResumeFileName(resume?.fileName || '');
-        // Restore saved ATS score so user sees it without re-uploading
+
         if (typeof resume?.atsScore === 'number' && resume.atsScore > 0) {
           setAtsScore(resume.atsScore);
           setAtsSkills(resume.skills || []);
@@ -111,16 +78,21 @@ const MainDashboard = () => {
         const resumeSkills  = Array.isArray(user?.resume?.skills) ? user.resume.skills : [];
         const profileSkills = Array.isArray(profile?.skills)       ? profile.skills    : [];
         const skills  = resumeSkills.length > 0 ? resumeSkills : profileSkills;
+
         const latestRes = await internshipAPI.getLatestInternships({
-          skills, location: profile?.location || '', domain: profile?.sector || '',
+          skills,
+          location: profile?.location || '',
+          locations: profile?.locations || [],
+          domain: profile?.sector || '',
         }).catch(() => null);
+
         setInternships(Array.isArray(latestRes?.internships) ? latestRes.internships : []);
       } catch (e) { console.error('Dashboard load error', e); }
     };
     load();
   }, [navigate]);
 
-  /* ── resume file select ──────────────────────────────────────────────── */
+  /* ── Resume File Select ── */
   const handleFileSelect = (e) => {
     const f = e.target.files?.[0];
     if (!f) return;
@@ -132,7 +104,7 @@ const MainDashboard = () => {
     setUploadSuccess('');
   };
 
-  /* ── Upload resume to DB (uses /analyze which saves text+skills+atsScore) */
+  /* ── Upload Resume ── */
   const handleUploadResume = async () => {
     if (!resumeFile) { setUploadError('Choose a file first'); return; }
     setUploading(true); setUploadError(''); setUploadSuccess('');
@@ -152,18 +124,89 @@ const MainDashboard = () => {
     } finally { setUploading(false); }
   };
 
-  const pct   = Math.max(0, Math.min(100, userData.profileCompletion || 0));
+  /* ── Update Career Preferences (Domain, Locations, Skills) ── */
+  const handleUpdatePreferences = async ({ sector, location, locations, skills }) => {
+    const newSector = sector !== undefined ? sector : (userData.profile?.sector || '');
+    const newLocations = locations !== undefined
+      ? locations
+      : (location ? location.split(',').map(s => s.trim()).filter(Boolean) : (userData.profile?.locations || []));
+    const newLocation = location !== undefined
+      ? location
+      : (newLocations.length > 0 ? newLocations.join(', ') : (userData.profile?.location || 'Pan India'));
+    const newSkills = skills !== undefined ? skills : userSkills;
+
+    // Optimistically update state
+    setUserSkills(newSkills);
+    const updatedProfile = {
+      ...(userData.profile || {}),
+      sector: newSector,
+      location: newLocation,
+      locations: newLocations,
+      skills: newSkills,
+    };
+    setUserData(prev => ({
+      ...prev,
+      profile: updatedProfile,
+    }));
+
+    // Update localStorage and notify components like Sidebar
+    try {
+      localStorage.setItem('userSkills', JSON.stringify(newSkills));
+      const stored = JSON.parse(localStorage.getItem('userData') || '{}');
+      if (stored) {
+        stored.profile = updatedProfile;
+        stored.technicalSkills = newSkills;
+        localStorage.setItem('userData', JSON.stringify(stored));
+      }
+      window.dispatchEvent(new Event('storage'));
+    } catch (e) {
+      console.warn('LocalStorage sync warning:', e);
+    }
+
+    // Refresh recommendations live with new preferences
+    try {
+      const latestRes = await internshipAPI.getLatestInternships({
+        skills: newSkills,
+        location: newLocation,
+        locations: newLocations,
+        domain: newSector,
+      }).catch(() => null);
+      setInternships(Array.isArray(latestRes?.internships) ? latestRes.internships : []);
+    } catch (e) {
+      console.error('Recommendations refresh error:', e);
+    }
+
+    // Persist to backend database
+    try {
+      await userAPI.updateProfile({
+        sector: newSector,
+        location: newLocation,
+        locations: newLocations,
+        skills: newSkills,
+        technicalSkills: newSkills,
+      });
+    } catch (err) {
+      console.error('Profile update error:', err);
+    }
+  };
+
+  const locationsList = (Array.isArray(userData?.profile?.locations) && userData.profile.locations.length > 0)
+    ? userData.profile.locations
+    : (userData?.profile?.location ? userData.profile.location.split(',').map(s => s.trim()).filter(Boolean) : ['Pan India']);
+
+  const locationDisplay = locationsList.length <= 2
+    ? locationsList.join(', ')
+    : `${locationsList.slice(0, 2).join(', ')} +${locationsList.length - 2}`;
+
   const stats = [
-    { icon: Briefcase, label: 'Internships', value: internships.length || 0 },
-    { icon: Code,      label: 'Skills',      value: userSkills.length       },
-    { icon: Building2, label: 'Sector',      value: userData?.profile?.sector   || '—' },
-    { icon: MapPin,    label: 'Location',    value: userData?.profile?.location || '—' },
+    { icon: Briefcase, label: 'Live Matches', value: internships.length || 0, color: 'text-indigo-600 dark:text-indigo-400', bg: 'bg-indigo-50 dark:bg-indigo-950/60' },
+    { icon: Code,      label: 'Mapped Skills', value: userSkills.length,       color: 'text-violet-600 dark:text-violet-400', bg: 'bg-violet-50 dark:bg-violet-950/60' },
+    { icon: Building2, label: 'Target Domain', value: userData?.profile?.sector   || 'All Sectors', color: 'text-emerald-600 dark:text-emerald-400', bg: 'bg-emerald-50 dark:bg-emerald-950/60' },
+    { icon: MapPin,    label: 'Preferred Cities', value: locationDisplay, color: 'text-amber-600 dark:text-amber-400', bg: 'bg-amber-50 dark:bg-amber-950/60' },
   ];
 
-  /* ══════════════════════════════════════════════════════════════════════ */
   return (
-    <div className="min-h-screen bg-background">
-      <Header />
+    <div className="min-h-screen bg-[#F8FAFC] dark:bg-[#0B1120] text-slate-900 dark:text-slate-100 transition-colors duration-200">
 
       {selectedInternship && (
         <InternshipDetailModal
@@ -172,89 +215,86 @@ const MainDashboard = () => {
         />
       )}
 
-      <main className="max-w-[1400px] mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-4 md:py-6 space-y-4 md:space-y-6">
+      <main className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
 
         {/* ═══ TWO-COLUMN LAYOUT ═══════════════════════════════════════ */}
-        <div className="flex flex-col xl:flex-row gap-4 md:gap-6">
+        <div className="flex flex-col xl:flex-row gap-6">
 
           {/* ── LEFT COLUMN ─────────────────────────────────────────── */}
-          <div className="flex-1 min-w-0 space-y-4 md:space-y-5">
+          <div className="flex-1 min-w-0 space-y-6">
 
-            {/* ── OVERVIEW TERMINAL ── */}
-            <div className="bg-card border border-border rounded-2xl shadow-elevation-1 overflow-hidden">
-              {/* Gradient header accent */}
-              <div className="h-1 w-full gradient-primary" />
-              <div className="p-4 sm:p-5 md:p-7">
-                {/* Label */}
-                <div className="flex items-center gap-2 mb-3">
-                  <Terminal className="w-3.5 h-3.5 text-primary" />
-                  <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-primary">
-                    Overview Terminal
+            {/* ── COMMAND CENTER HERO ── */}
+            <div className="bg-white dark:bg-slate-900/90 border border-slate-200/80 dark:border-slate-800 rounded-3xl shadow-xs overflow-hidden backdrop-blur-sm transition-colors">
+              {/* Subtle top accent gradient */}
+              <div className="h-1 w-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500" />
+
+              <div className="p-5 sm:p-6 md:p-8">
+                {/* Status Bar */}
+                <div className="flex items-center justify-between gap-2 mb-3">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                      Career Command Center
+                    </span>
+                  </div>
+                  <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 border border-indigo-200/60 dark:border-indigo-900/50">
+                    Live Platform
                   </span>
                 </div>
 
-                <div className="flex flex-col sm:flex-row sm:items-start gap-5 sm:gap-6">
-                  {/* Text */}
-                  <div className="flex-1 min-w-0">
-                    <h1 className="text-xl sm:text-2xl md:text-3xl font-extrabold text-foreground leading-tight mb-2">
-                      Welcome Back,{' '}
-                      <span className="text-gradient">{userData.name || 'Intern'}!</span>
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+                  <div className="max-w-2xl">
+                    <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight leading-tight mb-2">
+                      Welcome Back, <span className="bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent">{userData.name || 'Candidate'}!</span>
                     </h1>
-                    <p className="text-sm text-muted-foreground mb-4 md:mb-5 leading-relaxed">
-                      Your internship matchmaking parameters are operational. Complete your
-                      profile checklist to unlock higher-tier recommendations.
+                    <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed mb-5">
+                      Explore AI-matched job opportunities, track active applications, and optimize your resume keywords for higher ATS compliance.
                     </p>
-                    <div className="flex flex-wrap gap-2 sm:gap-3">
+
+                    {/* Quick navigation buttons */}
+                    <div className="flex items-center gap-2.5 flex-wrap">
                       <button
-                        onClick={() => navigate('/user-profile-management')}
-                        className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all duration-200 active:scale-95 gradient-primary text-white shadow-elevation-1"
+                        onClick={() => navigate('/jobs')}
+                        className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm shadow-indigo-500/20 hover:shadow-md hover:shadow-indigo-500/30 transition-all active:scale-[0.98]"
                       >
-                        <Zap className="w-4 h-4" /> Update Profile
+                        <Compass className="w-4 h-4" /> Explore All Jobs
+                      </button>
+                      <button
+                        onClick={() => navigate('/resume-tools')}
+                        className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-750 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700 transition-all active:scale-[0.98]"
+                      >
+                        <FileText className="w-4 h-4 text-indigo-500" /> Resume Builder
+                      </button>
+                      <button
+                        onClick={() => navigate('/ai-interview')}
+                        className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-750 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700 transition-all active:scale-[0.98]"
+                      >
+                        <Sparkles className="w-4 h-4 text-violet-500" /> AI Interview Prep
                       </button>
                     </div>
-                  </div>
-
-                  {/* Circular progress — hidden on very small screens, visible sm+ */}
-                  <div className="hidden sm:flex flex-col items-center gap-1 shrink-0">
-                    <CircularProgress pct={pct} />
-                    <span className="text-xs font-medium text-muted-foreground">Profile Completion</span>
-                  </div>
-                </div>
-
-                {/* Mobile progress bar (shown only on xs) */}
-                <div className="sm:hidden mt-4">
-                  <div className="flex items-center justify-between mb-1.5">
-                    <span className="text-xs font-semibold text-muted-foreground">Profile Completion</span>
-                    <span className="text-xs font-bold text-primary">{pct}%</span>
-                  </div>
-                  <div className="w-full h-2 rounded-full bg-muted overflow-hidden">
-                    <div
-                      className="h-full rounded-full gradient-primary transition-all duration-700"
-                      style={{ width: `${pct}%` }}
-                    />
                   </div>
                 </div>
               </div>
 
-              {/* Stat chips */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 border-t border-border">
+              {/* Stat Chips Row */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/40">
                 {stats.map((s, i) => {
                   const Icon = s.icon;
                   return (
                     <div
                       key={i}
-                      className={`flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-3 ${
-                        i % 2 === 0 && i !== stats.length - 1 ? 'border-r border-border' : ''
-                      } ${i < 2 ? 'border-b sm:border-b-0 border-border' : ''} ${
-                        i !== 0 && i !== 2 ? 'sm:border-l sm:border-border' : ''
+                      className={`flex items-center gap-3 px-4 py-3.5 ${
+                        i % 2 === 0 && i !== stats.length - 1 ? 'border-r border-slate-100 dark:border-slate-800' : ''
+                      } ${i < 2 ? 'border-b sm:border-b-0 border-slate-100 dark:border-slate-800' : ''} ${
+                        i !== 0 && i !== 2 ? 'sm:border-l sm:border-slate-100 dark:border-slate-800' : ''
                       }`}
                     >
-                      <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center shrink-0 bg-primary/10">
-                        <Icon className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-primary" />
+                      <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${s.bg}`}>
+                        <Icon className={`w-4 h-4 ${s.color}`} />
                       </div>
                       <div className="min-w-0">
-                        <div className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-muted-foreground">{s.label}</div>
-                        <div className="text-xs sm:text-sm font-bold text-foreground truncate">{s.value}</div>
+                        <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">{s.label}</div>
+                        <div className="text-xs sm:text-sm font-black text-slate-900 dark:text-slate-100 truncate">{s.value}</div>
                       </div>
                     </div>
                   );
@@ -263,35 +303,39 @@ const MainDashboard = () => {
             </div>
 
             {/* ── DOCUMENT VAULT + ATS SCORECARD ── */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
 
               {/* ── Document Vault ── */}
-              <div className="bg-card border border-border rounded-2xl shadow-elevation-1 p-4 sm:p-5 flex flex-col">
-                <div className="flex items-center justify-between mb-3">
+              <div className="bg-white dark:bg-slate-900/90 border border-slate-200/80 dark:border-slate-800 rounded-3xl shadow-xs p-5 sm:p-6 flex flex-col backdrop-blur-sm transition-colors">
+                <div className="flex items-center justify-between mb-3.5">
                   <div>
                     <div className="flex items-center gap-1.5 mb-1">
-                      <FileText className="w-3 h-3 text-primary" />
-                      <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-primary">Document Vault</span>
+                      <FileText className="w-3.5 h-3.5 text-indigo-500" />
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">Document Vault</span>
                     </div>
-                    <h2 className="text-base sm:text-lg font-bold text-foreground">Resume Status</h2>
+                    <h2 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white">Active Resume</h2>
                   </div>
-                  <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
-                    <FileText className="w-5 h-5 text-primary" />
+                  <div className="w-10 h-10 rounded-2xl bg-indigo-50 dark:bg-indigo-950/60 flex items-center justify-center shrink-0 shadow-2xs">
+                    <FileText className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
                   </div>
                 </div>
 
                 {/* Status badge */}
-                <div className={`flex items-center gap-2 px-3 py-2 rounded-lg mb-4 text-sm font-semibold ${
+                <div className={`flex items-center gap-2 px-3.5 py-2.5 rounded-xl mb-4 text-xs font-semibold ${
                   resumeUploaded
-                    ? 'bg-success/10 text-success border border-success/20'
-                    : 'bg-warning/10 text-warning border border-warning/20'
+                    ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200/60 dark:border-emerald-900/40'
+                    : 'bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border border-amber-200/60 dark:border-amber-900/40'
                 }`}>
                   {resumeUploaded ? (
-                    <><CheckCircle2 className="w-4 h-4 shrink-0" />
-                      <span className="truncate">{resumeFileName || 'Resume uploaded'}</span>
+                    <>
+                      <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-500" />
+                      <span className="truncate">{resumeFileName || 'Resume uploaded and synchronized'}</span>
                     </>
                   ) : (
-                    <><AlertCircle className="w-4 h-4 shrink-0" /> No resume uploaded yet</>
+                    <>
+                      <AlertCircle className="w-4 h-4 shrink-0 text-amber-500" />
+                      <span>No resume on file — upload to get tailored jobs</span>
+                    </>
                   )}
                 </div>
 
@@ -307,161 +351,166 @@ const MainDashboard = () => {
 
                 {/* Selected file preview */}
                 {resumeFile ? (
-                  <div className="flex items-center gap-2 p-2.5 rounded-lg mb-3 bg-primary/5 border border-primary/20">
-                    <FileText className="w-4 h-4 shrink-0 text-primary" />
-                    <span className="flex-1 text-xs font-medium truncate text-foreground">{resumeFile.name}</span>
+                  <div className="flex items-center gap-2 p-3 rounded-xl mb-3 bg-indigo-50/60 dark:bg-indigo-950/40 border border-indigo-200/60 dark:border-indigo-900/40">
+                    <FileText className="w-4 h-4 shrink-0 text-indigo-600 dark:text-indigo-400" />
+                    <span className="flex-1 text-xs font-semibold truncate text-slate-800 dark:text-slate-200">{resumeFile.name}</span>
                     <button
                       onClick={() => { setResumeFile(null); if (resumeInputRef.current) resumeInputRef.current.value = ''; }}
-                      className="text-muted-foreground hover:text-destructive transition-colors"
+                      className="text-slate-400 hover:text-rose-500 transition-colors"
                     >
-                      <X className="w-3.5 h-3.5" />
+                      <X className="w-4 h-4" />
                     </button>
                   </div>
                 ) : (
-                  /* Upload button — always visible */
                   <label
                     htmlFor="dash-resume-upload"
-                    className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl cursor-pointer text-sm font-bold mb-3 transition-all duration-200 active:scale-95 bg-muted hover:bg-muted/70 text-foreground border border-dashed border-primary/40 hover:border-primary"
+                    className="flex items-center justify-center gap-2 w-full py-3 rounded-2xl cursor-pointer text-xs sm:text-sm font-bold mb-3 transition-all duration-200 active:scale-[0.98] bg-slate-50 dark:bg-slate-800/80 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 border border-dashed border-indigo-300 dark:border-indigo-800/70 hover:border-indigo-500"
                   >
-                    <Upload className="w-4 h-4 text-primary" />
+                    <Upload className="w-4 h-4 text-indigo-500" />
                     {resumeUploaded ? 'Replace Resume (PDF/DOCX)' : 'Upload Resume (PDF/DOCX)'}
                   </label>
                 )}
 
-                {/* Upload + Save to DB button */}
+                {/* Upload Action */}
                 {resumeFile && (
                   <button
                     onClick={handleUploadResume}
                     disabled={uploading}
-                    className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl text-sm font-bold transition-all duration-200 active:scale-95 disabled:opacity-60 gradient-primary text-white shadow-elevation-1 mb-2"
+                    className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all duration-200 active:scale-[0.98] disabled:opacity-60 bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm shadow-indigo-500/20 mb-2"
                   >
                     {uploading ? (
-                      <><Loader2 className="w-4 h-4 animate-spin" /> Uploading &amp; Saving…</>
+                      <><Loader2 className="w-4 h-4 animate-spin" /> Uploading &amp; Analyzing…</>
                     ) : (
                       <><Upload className="w-4 h-4" /> Upload &amp; Save to Profile</>
                     )}
                   </button>
                 )}
 
-                {/* Feedback messages */}
                 {uploadError && (
-                  <p className="text-xs mt-1 text-destructive flex items-center gap-1">
-                    <AlertCircle className="w-3 h-3 shrink-0" /> {uploadError}
+                  <p className="text-xs mt-1 text-rose-600 dark:text-rose-400 flex items-center gap-1 font-medium">
+                    <AlertCircle className="w-3.5 h-3.5 shrink-0" /> {uploadError}
                   </p>
                 )}
                 {uploadSuccess && (
-                  <p className="text-xs mt-1 text-success flex items-center gap-1">
-                    <CheckCircle2 className="w-3 h-3 shrink-0" /> {uploadSuccess}
+                  <p className="text-xs mt-1 text-emerald-600 dark:text-emerald-400 flex items-center gap-1 font-medium">
+                    <CheckCircle2 className="w-3.5 h-3.5 shrink-0" /> {uploadSuccess}
                   </p>
                 )}
 
-                {/* Supported formats note */}
-                <p className="text-[10px] text-muted-foreground mt-auto pt-3">PDF or DOCX · Max 5 MB · Saved to your profile</p>
+                <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-auto pt-3">
+                  Supported formats: PDF, DOCX · Max file size: 5 MB
+                </p>
               </div>
 
               {/* ── ATS Scorecard ── */}
-              <div className="bg-card border border-border rounded-2xl shadow-elevation-1 p-4 sm:p-5 flex flex-col">
-                <div className="flex items-center justify-between mb-3">
+              <div className="bg-white dark:bg-slate-900/90 border border-slate-200/80 dark:border-slate-800 rounded-3xl shadow-xs p-5 sm:p-6 flex flex-col backdrop-blur-sm transition-colors">
+                <div className="flex items-center justify-between mb-3.5">
                   <div>
                     <div className="flex items-center gap-1.5 mb-1">
-                      <Award className="w-3 h-3 text-primary" />
-                      <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-primary">ATS Scorecard</span>
+                      <Award className="w-3.5 h-3.5 text-violet-500" />
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-violet-600 dark:text-violet-400">Benchmark Engine</span>
                     </div>
-                    <h2 className="text-base sm:text-lg font-bold text-foreground">Resume Score</h2>
+                    <h2 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white">ATS Scorecard</h2>
                   </div>
-                  <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
-                    <Award className="w-5 h-5 text-primary" />
+                  <div className="w-10 h-10 rounded-2xl bg-violet-50 dark:bg-violet-950/60 flex items-center justify-center shrink-0 shadow-2xs">
+                    <Award className="w-5 h-5 text-violet-600 dark:text-violet-400" />
                   </div>
                 </div>
 
                 {atsScore !== null ? (
-                  /* ── Score Display ── */
-                  <div className="flex flex-col gap-2 flex-1">
-                    <div
-                      className="text-4xl sm:text-5xl font-black mb-1 leading-none"
-                      style={{
-                        background: atsScore >= 70
-                          ? 'linear-gradient(135deg,#34d399,#10b981)'
-                          : atsScore >= 40
-                          ? 'linear-gradient(135deg,#fbbf24,#f59e0b)'
-                          : 'linear-gradient(135deg,#f87171,#ef4444)',
-                        WebkitBackgroundClip: 'text',
-                        WebkitTextFillColor: 'transparent',
-                      }}
-                    >
-                      {atsScore}%
-                    </div>
-
-                    {/* Score bar */}
-                    <div className="w-full h-2 rounded-full bg-muted overflow-hidden">
-                      <div
-                        className="h-full rounded-full transition-all duration-700"
-                        style={{
-                          width: `${atsScore}%`,
-                          background: atsScore >= 70
-                            ? 'linear-gradient(90deg,#34d399,#10b981)'
-                            : atsScore >= 40
-                            ? 'linear-gradient(90deg,#fbbf24,#f59e0b)'
-                            : 'linear-gradient(90deg,#f87171,#ef4444)',
-                        }}
-                      />
-                    </div>
-
-                    <p className="text-xs text-muted-foreground">
-                      {atsScore >= 70 ? '✅ Strong ATS compatibility'
-                        : atsScore >= 40 ? '⚠️ Needs improvement — optimize keywords'
-                        : '❌ Low score — major improvements needed'}
-                    </p>
-
-                    {/* Detected skills */}
-                    {atsSkills.length > 0 && (
-                      <div className="flex flex-wrap gap-1.5 mt-1">
-                        {atsSkills.slice(0, 5).map((sk, i) => (
-                          <span key={i} className="px-2 py-0.5 rounded-full text-[10px] font-semibold badge-primary">{sk}</span>
-                        ))}
-                        {atsSkills.length > 5 && (
-                          <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold text-muted-foreground bg-muted">
-                            +{atsSkills.length - 5} more
-                          </span>
-                        )}
+                  <div className="flex flex-col gap-3 flex-1 justify-between">
+                    <div>
+                      <div className="flex items-baseline gap-2 mb-1.5">
+                        <span
+                          className="text-4xl sm:text-5xl font-black leading-none"
+                          style={{
+                            background: atsScore >= 70
+                              ? 'linear-gradient(135deg,#10b981,#059669)'
+                              : atsScore >= 40
+                              ? 'linear-gradient(135deg,#f59e0b,#d97706)'
+                              : 'linear-gradient(135deg,#ef4444,#dc2626)',
+                            WebkitBackgroundClip: 'text',
+                            WebkitTextFillColor: 'transparent',
+                          }}
+                        >
+                          {atsScore}%
+                        </span>
+                        <span className="text-xs font-bold text-slate-400 uppercase tracking-wide">
+                          ATS Strength
+                        </span>
                       </div>
-                    )}
 
-                    {/* Improve score CTA */}
+                      {/* Score bar */}
+                      <div className="w-full h-2 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden mb-2">
+                        <div
+                          className="h-full rounded-full transition-all duration-700"
+                          style={{
+                            width: `${atsScore}%`,
+                            background: atsScore >= 70
+                              ? 'linear-gradient(90deg,#34d399,#10b981)'
+                              : atsScore >= 40
+                              ? 'linear-gradient(90deg,#fbbf24,#f59e0b)'
+                              : 'linear-gradient(90deg,#f87171,#ef4444)',
+                          }}
+                        />
+                      </div>
+
+                      <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">
+                        {atsScore >= 70 ? '✅ Excellent ATS compatibility for recruiters'
+                          : atsScore >= 40 ? '⚠️ Moderate compatibility — optimize keywords'
+                          : '❌ Low score — formatting or keywords need overhaul'}
+                      </p>
+
+                      {/* Detected skills */}
+                      {atsSkills.length > 0 && (
+                        <div className="flex flex-wrap gap-1.5 mt-2.5">
+                          {atsSkills.slice(0, 5).map((sk, i) => (
+                            <span key={i} className="px-2 py-0.5 rounded-md text-[10px] font-semibold bg-violet-50 dark:bg-violet-950/50 text-violet-700 dark:text-violet-300 border border-violet-200/60 dark:border-violet-900/50">
+                              {sk}
+                            </span>
+                          ))}
+                          {atsSkills.length > 5 && (
+                            <span className="px-2 py-0.5 rounded-md text-[10px] font-semibold text-slate-400 bg-slate-100 dark:bg-slate-800">
+                              +{atsSkills.length - 5} more
+                            </span>
+                          )}
+                        </div>
+                      )}
+                    </div>
+
                     <button
                       onClick={() => navigate('/ats-analyzer')}
-                      className="mt-auto w-full py-2 rounded-xl text-xs font-bold text-primary bg-primary/10 hover:bg-primary/20 border border-primary/20 transition-all duration-200 active:scale-95 flex items-center justify-center gap-1.5"
+                      className="w-full py-2.5 rounded-2xl text-xs font-bold text-violet-700 dark:text-violet-300 bg-violet-50 dark:bg-violet-950/50 hover:bg-violet-100 dark:hover:bg-violet-900/60 border border-violet-200/60 dark:border-violet-900/50 transition-all duration-200 flex items-center justify-center gap-1.5 mt-3"
                     >
-                      <Award className="w-3.5 h-3.5" /> Run Full ATS Analysis →
+                      <Award className="w-3.5 h-3.5" /> Detailed ATS Analysis →
                     </button>
                   </div>
                 ) : (
-                  /* ── No Score Yet ── */
-                  <div className="flex flex-col items-center justify-center py-2 text-center gap-3 flex-1">
-                    <div className="w-16 h-16 rounded-2xl bg-muted/60 flex items-center justify-center">
-                      <Award className="w-8 h-8 text-muted-foreground/40" />
+                  <div className="flex flex-col items-center justify-center py-4 text-center gap-3 flex-1">
+                    <div className="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
+                      <Award className="w-6 h-6 text-slate-400 dark:text-slate-500" />
                     </div>
                     <div>
-                      <p className="text-sm font-bold text-foreground mb-1">No ATS score yet</p>
-                      <p className="text-xs text-muted-foreground">
+                      <p className="text-sm font-bold text-slate-900 dark:text-white mb-0.5">No ATS score yet</p>
+                      <p className="text-xs text-slate-500 dark:text-slate-400 max-w-xs">
                         {resumeUploaded
-                          ? 'Your resume is saved — run ATS analysis to get your score'
-                          : 'Upload your resume first, then calculate your ATS score'}
+                          ? 'Your resume is saved — run ATS analysis to evaluate recruiter visibility'
+                          : 'Upload your resume first, then evaluate your keyword score'}
                       </p>
                     </div>
                     <button
                       onClick={() => navigate('/ats-analyzer')}
-                      className="w-full py-2.5 rounded-xl text-sm font-bold transition-all duration-200 active:scale-95 gradient-primary text-white shadow-elevation-1 flex items-center justify-center gap-2"
+                      className="w-full py-2.5 rounded-2xl text-xs font-bold bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white shadow-xs transition-all flex items-center justify-center gap-1.5 mt-1"
                     >
-                      <Award className="w-4 h-4" />
-                      {resumeUploaded ? 'Calculate ATS Score →' : 'Go to ATS Analyzer →'}
+                      <Award className="w-3.5 h-3.5" />
+                      {resumeUploaded ? 'Calculate ATS Score →' : 'Launch ATS Analyzer →'}
                     </button>
                   </div>
                 )}
               </div>
             </div>
 
-            {/* ── AI RECOMMENDED INTERNSHIPS ── */}
+            {/* ── AI RECOMMENDED OPPORTUNITIES ── */}
             <RecommendationPreview
               internships={internships}
               userSkills={userSkills}
@@ -469,44 +518,17 @@ const MainDashboard = () => {
             />
           </div>
 
-          {/* ── RIGHT COLUMN — Quick Actions (sticky on xl) ─────────── */}
-          <div className="w-full xl:w-[300px] 2xl:w-[320px] shrink-0 space-y-4 md:space-y-5">
-            {/* On mobile show below; on xl sticky */}
-            <div className="xl:sticky xl:top-6 space-y-4 md:space-y-5">
-              <QuickActions onNavigate={handleNavigate} />
-
-              {/* Mini profile card */}
-              <div className="bg-card border border-border rounded-2xl shadow-elevation-1 p-4 sm:p-5">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 rounded-xl gradient-primary flex items-center justify-center shrink-0">
-                    <User className="w-5 h-5 text-white" />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="font-bold text-sm text-foreground truncate">{userData.name || '—'}</p>
-                    <p className="text-xs text-muted-foreground truncate">{userData.email || '—'}</p>
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between mb-1.5">
-                  <span className="text-xs font-semibold text-muted-foreground">Profile Completion</span>
-                  <span className="text-xs font-bold text-primary">{pct}%</span>
-                </div>
-                <div className="w-full h-1.5 rounded-full bg-muted overflow-hidden mb-3">
-                  <div
-                    className="h-full rounded-full gradient-primary transition-all duration-700"
-                    style={{ width: `${pct}%` }}
-                  />
-                </div>
-
-                <button
-                  onClick={() => navigate('/user-profile-management')}
-                  className="w-full py-2 rounded-xl text-xs font-bold text-primary bg-primary/10 hover:bg-primary/20 border border-primary/20 transition-all duration-200 active:scale-95"
-                >
-                  Complete Profile →
-                </button>
-              </div>
+          {/* ── RIGHT COLUMN — Recommendations Setup & Preferences ─────────── */}
+          <div className="w-full xl:w-[340px] 2xl:w-[360px] shrink-0 space-y-5">
+            <div className="xl:sticky xl:top-6">
+              <CareerPreferencesCard
+                userData={userData}
+                userSkills={userSkills}
+                onUpdatePreferences={handleUpdatePreferences}
+              />
             </div>
           </div>
+
         </div>
       </main>
 

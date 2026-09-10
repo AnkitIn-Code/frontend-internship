@@ -4,7 +4,7 @@ import {
     FileText, Sparkles, Download, Loader2, Briefcase, Code,
     User, BookOpen, Layers, Award, ChevronDown, ChevronUp, ChevronRight,
     Trash2, Plus, ZoomIn, ZoomOut, Eye, Check, Palette,
-    Type, ExternalLink
+    Type, ExternalLink, Maximize2, Trophy
 } from 'lucide-react';
 import axios from '../../utils/axios';
 import { currentUserAPI } from '../../services/api';
@@ -94,40 +94,79 @@ const TEMPLATES = {
 /* ═══════════════════════════════════════════════════════════════════════════
    REUSABLE FORM UI COMPONENTS
    ═══════════════════════════════════════════════════════════════════════════ */
-const inputCls = "w-full bg-white border border-slate-200 rounded-xl px-3 py-2.5 text-[16px] md:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400 transition-all placeholder:text-slate-300";
-const labelCls = "block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1";
+const inputCls = "w-full bg-slate-50/60 dark:bg-slate-800/80 hover:bg-white dark:hover:bg-slate-800 border border-slate-200/90 dark:border-slate-700/80 rounded-xl px-3.5 py-2.5 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 dark:focus:border-indigo-400 transition-all shadow-xs";
+const labelCls = "block text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5";
 
-const Section = ({ icon: Icon, title, number, color, children, accent }) => {
+const Section = ({ icon: Icon, title, number, color, children, accent, count }) => {
     const [open, setOpen] = useState(true);
     return (
-        <div className="mb-5">
-            <button onClick={() => setOpen(o => !o)} className="w-full flex items-center gap-2.5 py-2.5 px-1 group">
-                <span className={`w-6 h-6 rounded-lg ${accent} flex items-center justify-center text-xs font-bold text-white shrink-0`}>{number}</span>
+        <div className="mb-4 bg-white dark:bg-slate-900/70 border border-slate-200/80 dark:border-slate-800 rounded-2xl overflow-hidden shadow-xs transition-colors">
+            <button 
+                type="button"
+                onClick={() => setOpen(o => !o)} 
+                className="w-full flex items-center gap-3 px-4 py-3.5 text-left group hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors cursor-pointer"
+            >
+                <span className={`w-6 h-6 rounded-lg ${accent} flex items-center justify-center text-xs font-bold text-white shrink-0 shadow-xs`}>
+                    {number}
+                </span>
                 <Icon className={`w-4 h-4 ${color} shrink-0`} />
-                <span className="font-bold text-slate-700 text-sm flex-1 text-left">{title}</span>
-                {open ? <ChevronUp className="w-4 h-4 text-slate-300 group-hover:text-slate-500 transition-colors" /> : <ChevronDown className="w-4 h-4 text-slate-300 group-hover:text-slate-500 transition-colors" />}
+                <span className="font-bold text-slate-800 dark:text-slate-100 text-sm flex-1">
+                    {title}
+                </span>
+                {count !== undefined && (
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 mr-1">
+                        {count}
+                    </span>
+                )}
+                <div className="w-6 h-6 rounded-lg flex items-center justify-center text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-200 transition-colors">
+                    {open ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                </div>
             </button>
-            <div className={`border-t border-slate-100 ${open ? 'pt-4' : 'hidden'}`}>{children}</div>
+            {open && (
+                <div className="px-4 pb-4 pt-1 border-t border-slate-100 dark:border-slate-800/80">
+                    {children}
+                </div>
+            )}
         </div>
     );
 };
 
 const ItemCard = ({ onDelete, children }) => (
-    <div className="relative p-5 bg-slate-50/50 border border-slate-200 rounded-2xl mb-4 group hover:border-blue-200 hover:bg-white transition-all">
+    <div className="relative p-4 sm:p-5 bg-slate-50/70 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-700/70 rounded-2xl mb-3.5 group hover:border-indigo-300 dark:hover:border-indigo-500/50 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-all shadow-xs">
         {children}
-        <button onClick={onDelete} className="absolute -top-2.5 -right-2.5 p-2 rounded-xl bg-white shadow-md border border-slate-100 hover:bg-red-50 hover:text-red-500 hover:border-red-100 text-slate-400 transition-all z-20 flex items-center justify-center" title="Remove"><Trash2 className="w-3.5 h-3.5" /></button>
+        <button 
+            type="button"
+            onClick={onDelete} 
+            className="absolute -top-2.5 -right-2.5 p-1.5 rounded-xl bg-white dark:bg-slate-800 shadow-md border border-slate-200 dark:border-slate-700 text-slate-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/50 hover:border-rose-200 dark:hover:border-rose-900 transition-all z-20 flex items-center justify-center cursor-pointer" 
+            title="Remove"
+        >
+            <Trash2 className="w-3.5 h-3.5" />
+        </button>
     </div>
 );
 
-const AiBtn = ({ onClick, loading, label = 'AI Enhance', colorCls = 'bg-indigo-50 text-indigo-600 hover:bg-indigo-100' }) => (
-    <button onClick={onClick} disabled={loading} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all disabled:opacity-40 ${colorCls}`}>
-        {loading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}{label}
+const AiBtn = ({ onClick, loading, label = 'AI Enhance', colorCls = 'bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 border border-indigo-200/70 dark:border-indigo-800/60' }) => (
+    <button 
+        type="button"
+        onClick={onClick} 
+        disabled={loading} 
+        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all shadow-xs disabled:opacity-50 cursor-pointer active:scale-95 ${colorCls}`}
+    >
+        {loading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
+        {label}
     </button>
 );
 
-const AddBtn = ({ onClick, label, color = 'blue' }) => (
-    <button onClick={onClick} className={`flex items-center gap-1.5 text-sm font-semibold text-${color}-600 hover:text-${color}-700 mt-1 group`}>
-        <span className={`w-5 h-5 rounded-full border-2 border-${color}-300 group-hover:border-${color}-500 flex items-center justify-center transition-colors`}><Plus className="w-3 h-3" /></span>{label}
+const AddBtn = ({ onClick, label }) => (
+    <button 
+        type="button"
+        onClick={onClick} 
+        className="w-full py-2.5 px-3 rounded-xl border border-dashed border-slate-300 dark:border-slate-700 hover:border-indigo-400 dark:hover:border-indigo-500 text-slate-600 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 bg-slate-50/50 dark:bg-slate-800/30 hover:bg-indigo-50/40 dark:hover:bg-indigo-950/30 flex items-center justify-center gap-2 text-xs font-bold transition-all cursor-pointer mt-1 group"
+    >
+        <span className="w-4 h-4 rounded-full bg-slate-200 dark:bg-slate-700 group-hover:bg-indigo-600 group-hover:text-white flex items-center justify-center transition-colors">
+            <Plus className="w-2.5 h-2.5" />
+        </span>
+        {label}
     </button>
 );
 
@@ -151,15 +190,16 @@ const ResumeContent = ({ data, templateId, fontSizeOffset = 0, fontFamily = 'def
     const nameSize = adjustSize(t.nameSize);
 
     // Filter to only non-empty items
-    const education = d.education.filter(e => e.institution || e.degree);
-    const experience = d.experience.filter(e => e.company || e.title);
-    const projects = d.projects.filter(p => p.name);
-    const certifications = d.certifications.filter(c => c.name);
-    const skills = d.skills.filter(s => s.category || s.items);
+    const education = (d.education || []).filter(e => e.institution || e.degree);
+    const experience = (d.experience || []).filter(e => e.company || e.title);
+    const projects = (d.projects || []).filter(p => p.name);
+    const certifications = (d.certifications || []).filter(c => c.name);
+    const skills = (d.skills || []).filter(s => s.category || s.items);
+    const achievements = (d.achievements || []).filter(a => a.title);
     const hasSummary = d.summary && d.summary.trim();
 
     // Dynamic section gap: more sections → tighter spacing
-    const activeSections = [hasSummary, education.length, experience.length, projects.length, certifications.length, skills.length].filter(Boolean).length;
+    const activeSections = [hasSummary, education.length, experience.length, projects.length, certifications.length, skills.length, achievements.length].filter(Boolean).length;
     const sGap = activeSections <= 3 ? '8px' : activeSections <= 5 ? t.sectionGap : '3px';
 
     // Contact info builder
@@ -337,7 +377,7 @@ const ResumeContent = ({ data, templateId, fontSizeOffset = 0, fontFamily = 'def
 
             {/* ── SKILLS ── */}
             {skills.length > 0 && (
-                <div style={{ marginBottom: '0' }}>
+                <div style={{ marginBottom: achievements.length > 0 ? sGap : '0' }}>
                     <h2 style={headingStyle}>Skills</h2>
                     <div style={{ paddingLeft: '12px', fontSize: bodySize, lineHeight: t.lineHeight }}>
                         {skills.map((skill, i) => (
@@ -346,6 +386,24 @@ const ResumeContent = ({ data, templateId, fontSizeOffset = 0, fontFamily = 'def
                             </div>
                         ))}
                     </div>
+                </div>
+            )}
+
+            {/* ── ACHIEVEMENTS & AWARDS (OTHER SECTION) ── */}
+            {achievements.length > 0 && (
+                <div style={{ marginBottom: '0' }}>
+                    <h2 style={headingStyle}>Achievements & Awards</h2>
+                    <ul style={{ paddingLeft: '12px', margin: 0, listStyle: 'none', fontSize: bodySize, lineHeight: t.lineHeight }}>
+                        {achievements.map((ach, i) => (
+                            <li key={i} style={{ display: 'flex', gap: '5px', alignItems: 'flex-start', marginBottom: '1px' }}>
+                                <span style={{ flexShrink: 0 }}>{t.bullet}</span>
+                                <span>
+                                    <strong style={{ fontWeight: 700 }}>{ach.title}</strong>
+                                    {ach.description ? `: ${ach.description}` : ''}
+                                </span>
+                            </li>
+                        ))}
+                    </ul>
                 </div>
             )}
         </div>
@@ -423,6 +481,11 @@ const SAMPLE_DATA = {
         { category: 'Languages', items: 'JavaScript, TypeScript, Python, C++, Go, HTML/CSS' },
         { category: 'Frameworks', items: 'React.js, Next.js, Node.js, Express.js, Tailwind CSS' },
         { category: 'Developer Tools', items: 'Git, Docker, Kubernetes, AWS (S3, EC2), MongoDB, PostgreSQL, Redis' }
+    ],
+    achievements: [
+        { title: '1st Place Winner — National Hackathon 2025', description: 'Built an AI-powered accessibility tool competing against 250+ engineering teams nationwide.' },
+        { title: 'Dean\'s Honor List (All Semesters)', description: 'Maintained 3.9+ GPA throughout academic coursework at UC Berkeley.' },
+        { title: 'Global Top 1% — LeetCode Biweekly Contest', description: 'Solved 4/4 algorithmic problems with optimal time/space complexity under contest time limits.' }
     ]
 };
 
@@ -441,6 +504,33 @@ const AiResumeBuilder = () => {
     const [fontSizeOffset, setFontSizeOffset] = useState(0);
     const [fontFamily, setFontFamily] = useState('default');
 
+    const previewContainerRef = useRef(null);
+    const printRef = useRef(null);
+
+    const fitZoom = useCallback(() => {
+        if (previewContainerRef.current) {
+            const containerWidth = previewContainerRef.current.clientWidth - 48; // account for p-4/p-6 padding
+            if (containerWidth > 200) {
+                const calculated = Math.floor((containerWidth / 794) * 100);
+                setZoom(Math.max(35, Math.min(calculated, 100)));
+                return;
+            }
+        }
+        setZoom(70);
+    }, []);
+
+    useEffect(() => {
+        if (window.innerWidth >= 1024) {
+            const timer = setTimeout(fitZoom, 150);
+            const handleResize = () => fitZoom();
+            window.addEventListener('resize', handleResize);
+            return () => {
+                clearTimeout(timer);
+                window.removeEventListener('resize', handleResize);
+            };
+        }
+    }, [fitZoom]);
+
     const [resumeData, setResumeData] = useState(SAMPLE_DATA);
 
     const markAsEdited = () => {
@@ -455,8 +545,19 @@ const AiResumeBuilder = () => {
         if (wasEdited && savedDataStr) {
             try {
                 const saved = JSON.parse(savedDataStr);
-                if (saved.resumeData && saved.resumeData.personal?.name && saved.resumeData.summary) {
-                    setResumeData(saved.resumeData);
+                if (saved.resumeData && (saved.resumeData.personal?.name || saved.resumeData.summary)) {
+                    // Deep merge with SAMPLE_DATA so that any missing or empty sections are always populated
+                    setResumeData({
+                        ...SAMPLE_DATA,
+                        ...saved.resumeData,
+                        personal: { ...SAMPLE_DATA.personal, ...(saved.resumeData.personal || {}) },
+                        education: (saved.resumeData.education && saved.resumeData.education.length > 0) ? saved.resumeData.education : SAMPLE_DATA.education,
+                        experience: (saved.resumeData.experience && saved.resumeData.experience.length > 0) ? saved.resumeData.experience : SAMPLE_DATA.experience,
+                        projects: (saved.resumeData.projects && saved.resumeData.projects.length > 0) ? saved.resumeData.projects : SAMPLE_DATA.projects,
+                        certifications: (saved.resumeData.certifications && saved.resumeData.certifications.length > 0) ? saved.resumeData.certifications : SAMPLE_DATA.certifications,
+                        skills: (saved.resumeData.skills && saved.resumeData.skills.length > 0) ? saved.resumeData.skills : SAMPLE_DATA.skills,
+                        achievements: (saved.resumeData.achievements && saved.resumeData.achievements.length > 0) ? saved.resumeData.achievements : SAMPLE_DATA.achievements,
+                    });
                     hasSavedProgress = true;
                 }
                 if (saved.selectedTemplate) setSelectedTemplate(saved.selectedTemplate);
@@ -519,11 +620,10 @@ const AiResumeBuilder = () => {
 
     const handleMobileTabChange = (tab) => {
         setMobileTab(tab);
-        if (tab === 'preview' && window.innerWidth < 1280) {
-            const screenZoom = Math.floor(((window.innerWidth - 24) / 794) * 100);
+        if (tab === 'preview' && window.innerWidth < 1024) {
+            const screenZoom = Math.floor(((window.innerWidth - 32) / 794) * 100);
             setZoom(Math.max(30, Math.min(screenZoom, 100)));
-            const container = document.getElementById('main-scroll-container');
-            if (container) container.scrollTo({ top: 0, behavior: 'smooth' });
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
     };
 
@@ -537,8 +637,6 @@ const AiResumeBuilder = () => {
             localStorage.setItem('hyrego_resume_edited', 'false');
         }
     };
-
-    const printRef = useRef(null);
 
     const handlePersonalChange = useCallback((e) => {
         setResumeData(prev => ({ ...prev, personal: { ...prev.personal, [e.target.name]: e.target.value } }));
@@ -581,14 +679,15 @@ const AiResumeBuilder = () => {
 
     const handleOptimizeExp = async (index, type = 'experience') => {
         const item = resumeData[type][index];
-        if (!item.description || item.description.trim().length < 10) { alert(`Please write a rough ${type} description first.`); return; }
+        const textToOptimize = item.description || item.title || '';
+        if (!textToOptimize || textToOptimize.trim().length < 5) { alert(`Please write a rough ${type} description or title first.`); return; }
         if (sessionRewriteCount >= 10) {
             alert('You have reached the limit of 10 AI rewrites per resume builder session. Please download your resume or start a new session.');
             return;
         }
         setLoadingExp(`${type}-${index}`);
         try { 
-            const res = await axios.post('/resume/optimize-experience', { text: item.description, type }); 
+            const res = await axios.post('/resume/optimize-experience', { text: textToOptimize, type }); 
             if (res.data.success) {
                 handleArrayChange(type, index, 'description', res.data.optimizedText); 
                 markAsEdited();
@@ -611,38 +710,92 @@ const AiResumeBuilder = () => {
     };
 
     // Progress
-    const filled = [resumeData.personal.name, resumeData.personal.email, resumeData.personal.phone, resumeData.summary,
-        resumeData.education.some(e => e.institution), resumeData.experience.some(e => e.company),
-        resumeData.projects.some(p => p.name), resumeData.skills.some(s => s.items)].filter(Boolean).length;
-    const progress = Math.round((filled / 8) * 100);
+    const filled = [
+        resumeData.personal.name,
+        resumeData.personal.email,
+        resumeData.personal.phone,
+        resumeData.summary,
+        (resumeData.education || []).some(e => e.institution),
+        (resumeData.experience || []).some(e => e.company),
+        (resumeData.projects || []).some(p => p.name),
+        (resumeData.skills || []).some(s => s.items),
+        (resumeData.achievements || []).some(a => a.title),
+    ].filter(Boolean).length;
+    const progress = Math.round((filled / 9) * 100);
 
     const currentTpl = TEMPLATES[selectedTemplate] || TEMPLATES.classic;
 
     if (loading) {
         return (
-            <div className="max-w-[1500px] mx-auto xl:h-[calc(100vh-140px)] flex flex-col xl:flex-row gap-5 pb-16 md:pb-0 p-4">
-                <div className="w-full xl:w-[44%] bg-white rounded-3xl shadow-sm border border-slate-100 p-6 space-y-6">
-                    <Skeleton className="h-20 w-full" /><Skeleton className="h-6 w-32" />
-                    <div className="grid grid-cols-2 gap-4"><Skeleton className="h-12 w-full" /><Skeleton className="h-12 w-full" /></div>
-                    {[1, 2, 3].map(i => (<div key={i} className="space-y-3 pt-4"><Skeleton className="h-6 w-40" /><Skeleton className="h-32 w-full" /></div>))}
+            <div className="w-full flex-1 flex flex-col lg:flex-row items-stretch gap-5 lg:gap-6 min-h-0 h-full overflow-hidden pb-16 lg:pb-0">
+                <div className="w-full lg:w-[48%] xl:w-[47%] h-full overflow-hidden space-y-4">
+                    <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 border border-slate-200/80 dark:border-slate-800 space-y-4">
+                        <Skeleton className="h-10 w-48 rounded-xl" />
+                        <Skeleton className="h-2 w-full rounded-full" />
+                    </div>
+                    <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 border border-slate-200/80 dark:border-slate-800 space-y-4">
+                        <Skeleton className="h-6 w-36 rounded-lg" />
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                            {[1, 2, 3, 4].map(i => <Skeleton key={i} className="h-28 w-full rounded-xl" />)}
+                        </div>
+                    </div>
+                    {[1, 2, 3].map(i => (
+                        <div key={i} className="bg-white dark:bg-slate-900 rounded-2xl p-5 border border-slate-200/80 dark:border-slate-800 space-y-3">
+                            <Skeleton className="h-6 w-40 rounded-lg" />
+                            <Skeleton className="h-24 w-full rounded-xl" />
+                        </div>
+                    ))}
                 </div>
-                <div className="hidden xl:flex w-full xl:w-[56%] flex-col bg-slate-50 rounded-3xl p-8 items-center"><Skeleton className="h-[1056px] w-[794px] shadow-xl" /></div>
+                <div className="hidden lg:flex w-full lg:w-[52%] xl:w-[53%] h-full bg-slate-100 dark:bg-slate-950 rounded-2xl p-8 items-center justify-center border border-slate-200/80 dark:border-slate-800">
+                    <Skeleton className="h-[90%] w-[80%] rounded-xl shadow-lg" />
+                </div>
             </div>
         );
     }
 
-    const zoomStyle = { transform: `scale(${zoom / 100})`, transformOrigin: 'top center' };
+    const scaledWidth = Math.round(794 * (zoom / 100));
+    const scaledHeight = Math.round(1123 * (zoom / 100));
 
     return (
-        <div className="max-w-[1500px] mx-auto animate-in fade-in duration-500 xl:h-[calc(100vh-140px)] flex flex-col xl:flex-row gap-5 print:h-auto print:block print:pb-0 print:w-full pb-16 md:pb-0">
-            {/* ── PRINT CSS ── */}
+        <div className="w-full flex-1 min-h-0 h-full animate-in fade-in duration-300 flex flex-col lg:flex-row items-stretch gap-5 lg:gap-6 overflow-hidden print:block print:pb-0 print:w-full pb-16 lg:pb-0">
+            {/* ── PRINT & SCROLLBAR CSS ── */}
             <style>{`
+                .custom-builder-scroll {
+                    scrollbar-width: thin;
+                    scrollbar-color: rgba(99, 102, 241, 0.45) transparent;
+                }
+                .custom-builder-scroll::-webkit-scrollbar {
+                    width: 7px;
+                    height: 7px;
+                }
+                .custom-builder-scroll::-webkit-scrollbar-track {
+                    background: rgba(0, 0, 0, 0.03);
+                    border-radius: 9999px;
+                }
+                .custom-builder-scroll::-webkit-scrollbar-thumb {
+                    background: rgba(99, 102, 241, 0.45);
+                    border-radius: 9999px;
+                }
+                .custom-builder-scroll::-webkit-scrollbar-thumb:hover {
+                    background: rgba(99, 102, 241, 0.75);
+                }
+                .dark .custom-builder-scroll::-webkit-scrollbar-track {
+                    background: rgba(255, 255, 255, 0.03);
+                }
+                .dark .custom-builder-scroll::-webkit-scrollbar-thumb {
+                    background: rgba(129, 140, 248, 0.45);
+                }
+                .dark .custom-builder-scroll::-webkit-scrollbar-thumb:hover {
+                    background: rgba(129, 140, 248, 0.75);
+                }
                 @media print {
                     @page { size: A4; margin: 0; }
                     body * { visibility: hidden !important; }
                     #resume-print, #resume-print * { visibility: visible !important; }
                     #preview-zoom-container {
                         transform: none !important;
+                        position: static !important;
+                        width: 210mm !important;
                     }
                     #resume-print {
                         position: absolute !important;
@@ -652,145 +805,203 @@ const AiResumeBuilder = () => {
                         box-shadow: none !important;
                         border: none !important;
                     }
-                }
-                @media print {
                     .resume-item { break-inside: avoid; }
                 }
             `}</style>
 
-            {/* ═══ LEFT: Form Panel ═══ */}
-            <div className={`w-full xl:w-[42%] bg-white rounded-3xl shadow-sm border border-slate-100 overflow-y-auto scrollbar-hide max-h-full print:hidden flex flex-col ${mobileTab === 'edit' ? 'flex' : 'hidden xl:flex'}`}>
+            {/* ═══ LEFT: Independently Scrollable Form Panel ═══ */}
+            <div 
+                className={`w-full lg:w-[48%] xl:w-[47%] h-full min-h-0 max-h-full overflow-y-auto custom-builder-scroll pr-1 lg:pr-3 flex flex-col space-y-4 print:hidden ${mobileTab === 'edit' ? 'flex' : 'hidden lg:flex'}`}
+            >
 
-                {/* Header */}
-                <div className="sticky top-0 z-10 bg-white/95 backdrop-blur-sm border-b border-slate-100 px-4 md:px-6 pt-4 md:pt-6 pb-3 md:pb-4">
-                    <div className="flex items-center gap-2 mb-3">
-                        <span className="w-7 h-7 md:w-8 md:h-8 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shrink-0">
-                            <FileText className="w-3.5 h-3.5 md:w-4 md:h-4 text-white" />
+                {/* Header & Progress Card */}
+                <div className="bg-white dark:bg-slate-900 rounded-2xl p-4 sm:p-5 border border-slate-200/80 dark:border-slate-800 shadow-xs">
+                    <div className="flex items-center gap-3 mb-3">
+                        <span className="w-8 h-8 rounded-xl bg-indigo-600 flex items-center justify-center text-white shadow-xs shrink-0">
+                            <FileText className="w-4 h-4 text-white" />
                         </span>
                         <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 flex-wrap">
-                                <h2 className="text-base md:text-xl font-extrabold text-slate-800 tracking-tight leading-tight whitespace-nowrap">Resume Builder</h2>
-                                <span className="text-[10px] md:text-xs font-semibold bg-green-100 text-green-700 px-1.5 py-0.5 rounded-full whitespace-nowrap">ATS-Ready</span>
+                                <h2 className="text-base md:text-lg font-bold text-slate-900 dark:text-white tracking-tight leading-tight whitespace-nowrap">
+                                    Resume Builder
+                                </h2>
+                                <span className="text-[10px] md:text-xs font-bold bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-800/60 px-2 py-0.5 rounded-full whitespace-nowrap">
+                                    ATS 95+ Ready
+                                </span>
                             </div>
-                            <div className="hidden md:flex items-center gap-1.5 mt-0.5 text-[11px] text-slate-400 font-medium">
+                            <div className="hidden sm:flex items-center gap-1.5 mt-0.5 text-[11px] text-slate-400 dark:text-slate-500 font-medium">
                                 <span>Fill details</span>
-                                <ChevronRight className="w-3 h-3 text-slate-300" />
+                                <ChevronRight className="w-3 h-3 text-slate-300 dark:text-slate-600" />
                                 <span>Pick template</span>
-                                <ChevronRight className="w-3 h-3 text-slate-300" />
-                                <span>Download PDF</span>
+                                <ChevronRight className="w-3 h-3 text-slate-300 dark:text-slate-600" />
+                                <span>Export PDF</span>
                             </div>
                         </div>
                         <button
                             type="button"
                             onClick={loadSampleData}
-                            className="flex items-center gap-1 text-[11px] font-bold text-indigo-600 hover:text-indigo-700 bg-indigo-50 hover:bg-indigo-100 px-2.5 py-1.5 rounded-xl transition-all border border-indigo-100 shadow-sm shrink-0 active:scale-95"
+                            className="flex items-center gap-1.5 text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 bg-indigo-50 dark:bg-indigo-950/60 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 px-3 py-1.5 rounded-xl transition-all border border-indigo-200/60 dark:border-indigo-800/60 shadow-xs shrink-0 active:scale-95 cursor-pointer"
                         >
-                            <Sparkles className="w-3.5 h-3.5" /> Load Sample
+                            <Sparkles className="w-3.5 h-3.5" /> 
+                            <span>Load Sample</span>
                         </button>
                     </div>
                     <div className="flex items-center gap-3">
-                        <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                            <div className="h-full bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full transition-all duration-700" style={{ width: `${progress}%` }} />
+                        <div className="flex-1 h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                            <div 
+                                className="h-full bg-gradient-to-r from-indigo-500 to-indigo-600 rounded-full transition-all duration-700" 
+                                style={{ width: `${progress}%` }} 
+                            />
                         </div>
-                        <span className="text-xs font-bold text-slate-400 shrink-0">{progress}%</span>
+                        <span className="text-xs font-bold text-slate-500 dark:text-slate-400 shrink-0 font-mono">
+                            {progress}%
+                        </span>
                     </div>
                 </div>
 
-                <div className="px-4 md:px-6 pt-4 pb-8">
+                {/* ── SECTION QUICK JUMP BAR (8 Sections) ── */}
+                <div className="bg-white dark:bg-slate-900 rounded-2xl p-3 sm:p-3.5 border border-slate-200/80 dark:border-slate-800 shadow-xs">
+                    <div className="flex items-center justify-between mb-2">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+                            <Layers className="w-3.5 h-3.5 text-indigo-500" />
+                            <span>Resume Sections (8 Total)</span>
+                        </span>
+                        <span className="text-[10px] text-slate-400 font-medium hidden sm:inline">Click to jump</span>
+                    </div>
+                    <div className="flex items-center gap-1.5 overflow-x-auto pb-1 custom-builder-scroll">
+                        {[
+                            { id: 'section-personal', label: '1. Contact', icon: User },
+                            { id: 'section-summary', label: '2. Summary', icon: Sparkles },
+                            { id: 'section-education', label: '3. Education', icon: BookOpen },
+                            { id: 'section-experience', label: '4. Experience', icon: Briefcase },
+                            { id: 'section-projects', label: '5. Projects', icon: Layers },
+                            { id: 'section-certifications', label: '6. Certs', icon: Award },
+                            { id: 'section-skills', label: '7. Skills', icon: Code },
+                            { id: 'section-achievements', label: '8. Awards & Other', icon: Trophy },
+                        ].map((sec) => (
+                            <button
+                                key={sec.id}
+                                type="button"
+                                onClick={() => {
+                                    const el = document.getElementById(sec.id);
+                                    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                                }}
+                                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 dark:bg-slate-800 hover:bg-indigo-50 dark:hover:bg-indigo-950/60 text-slate-700 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 border border-slate-200/60 dark:border-slate-700 hover:border-indigo-300 dark:hover:border-indigo-800 transition-all shrink-0 cursor-pointer shadow-xs active:scale-95"
+                            >
+                                <sec.icon className="w-3 h-3 shrink-0" />
+                                <span>{sec.label}</span>
+                            </button>
+                        ))}
+                    </div>
+                </div>
 
-                    {/* ── TEMPLATE SELECTOR ── */}
-                    <div className="mb-6">
-                        <div className="flex items-center gap-2 mb-2.5">
-                            <Palette className="w-4 h-4 text-slate-400" />
-                            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Choose Template</span>
+                {/* ── TEMPLATE SELECTOR ── */}
+                <div className="bg-white dark:bg-slate-900 rounded-2xl p-4 sm:p-5 border border-slate-200/80 dark:border-slate-800 shadow-xs">
+                    <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center gap-2">
+                            <Palette className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+                            <span className="text-[11px] font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">Choose ATS Template</span>
                         </div>
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                            {Object.values(TEMPLATES).map(tpl => (
-                                <button key={tpl.id} onClick={() => { setSelectedTemplate(tpl.id); setFontSizeOffset(0); }}
-                                    className={`relative flex flex-col items-center p-2 rounded-xl border-2 transition-all ${selectedTemplate === tpl.id ? 'border-blue-500 bg-blue-50/60 shadow-sm' : 'border-slate-200 hover:border-slate-300 bg-white'}`}>
-                                    {selectedTemplate === tpl.id && (
-                                        <span className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center shadow-sm">
-                                            <Check className="w-3 h-3 text-white" />
-                                        </span>
-                                    )}
-                                    {/* Mini resume preview */}
-                                    <div className="w-full aspect-[1/1.35] mb-1.5 rounded-lg border border-slate-200 bg-white p-1.5 flex flex-col gap-[2px] overflow-hidden" style={{ fontFamily: tpl.font }}>
-                                        <div className="h-[3px] w-8 mx-auto rounded-full bg-slate-700" />
-                                        <div className="h-[1px] w-10 mx-auto bg-slate-300" />
-                                        <div className="flex-1 flex flex-col gap-[2px] mt-0.5">
-                                            <div className="h-[2px] w-full rounded-full" style={{ backgroundColor: tpl.heading.color, opacity: .5 }} />
-                                            <div className="h-[1px] w-3/4 bg-slate-200 rounded-full" />
-                                            <div className="h-[1px] w-5/6 bg-slate-200 rounded-full" />
-                                            <div className="h-[2px] w-full rounded-full mt-[2px]" style={{ backgroundColor: tpl.heading.color, opacity: .5 }} />
-                                            <div className="h-[1px] w-2/3 bg-slate-200 rounded-full" />
-                                            <div className="h-[1px] w-4/5 bg-slate-200 rounded-full" />
-                                        </div>
-                                    </div>
-                                    <span className="text-[11px] font-bold text-slate-700 leading-tight">{tpl.name}</span>
-                                    <span className="text-[9px] text-slate-400 leading-tight">{tpl.desc}</span>
-                                </button>
-                            ))}
-                        </div>
-                        {/* Sample PDF link */}
                         <a
                             href={SAMPLE_ATS_URL}
                             target="_blank"
                             rel="noreferrer"
-                            className="mt-2.5 flex items-center gap-1.5 text-[11px] font-semibold text-blue-600 hover:text-blue-700 transition-colors"
+                            className="flex items-center gap-1 text-[11px] font-bold text-indigo-600 dark:text-indigo-400 hover:underline"
                         >
                             <ExternalLink className="w-3 h-3" />
-                            View sample ATS resume
+                            Sample PDF
                         </a>
                     </div>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5">
+                        {Object.values(TEMPLATES).map(tpl => {
+                            const active = selectedTemplate === tpl.id;
+                            return (
+                                <button 
+                                    key={tpl.id} 
+                                    type="button"
+                                    onClick={() => { setSelectedTemplate(tpl.id); setFontSizeOffset(0); }}
+                                    className={`relative flex flex-col items-center p-2.5 rounded-2xl border-2 transition-all cursor-pointer text-left ${
+                                        active 
+                                            ? 'border-indigo-600 bg-indigo-50/60 dark:bg-indigo-950/40 shadow-xs' 
+                                            : 'border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 bg-white dark:bg-slate-800/50'
+                                    }`}
+                                >
+                                    {active && (
+                                        <span className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-indigo-600 rounded-full flex items-center justify-center shadow-xs">
+                                            <Check className="w-3 h-3 text-white stroke-[3]" />
+                                        </span>
+                                    )}
+                                    {/* Mini resume preview */}
+                                    <div className="w-full aspect-[1/1.3] mb-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-2 flex flex-col gap-[2.5px] overflow-hidden shadow-xs" style={{ fontFamily: tpl.font }}>
+                                        <div className="h-[3px] w-10 mx-auto rounded-full bg-slate-800 dark:bg-slate-200" />
+                                        <div className="h-[1.5px] w-12 mx-auto bg-slate-300 dark:bg-slate-600" />
+                                        <div className="flex-1 flex flex-col gap-[2px] mt-1">
+                                            <div className="h-[2px] w-full rounded-full" style={{ backgroundColor: tpl.heading.color, opacity: .7 }} />
+                                            <div className="h-[1.5px] w-3/4 bg-slate-200 dark:bg-slate-700 rounded-full" />
+                                            <div className="h-[1.5px] w-5/6 bg-slate-200 dark:bg-slate-700 rounded-full" />
+                                            <div className="h-[2px] w-full rounded-full mt-[2px]" style={{ backgroundColor: tpl.heading.color, opacity: .7 }} />
+                                            <div className="h-[1.5px] w-2/3 bg-slate-200 dark:bg-slate-700 rounded-full" />
+                                            <div className="h-[1.5px] w-4/5 bg-slate-200 dark:bg-slate-700 rounded-full" />
+                                        </div>
+                                    </div>
+                                    <span className={`text-xs font-bold leading-tight ${active ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-800 dark:text-slate-200'}`}>{tpl.name}</span>
+                                    <span className="text-[10px] text-slate-400 dark:text-slate-500 leading-tight mt-0.5">{tpl.desc}</span>
+                                </button>
+                            );
+                        })}
+                    </div>
+                </div>
 
-                    {/* ── TYPOGRAPHY ── */}
-                    <div className="mb-5 p-3 md:p-4 bg-slate-50 rounded-xl border border-slate-200">
-                        <div className="flex items-center gap-2 mb-4">
-                            <Type className="w-4 h-4 text-slate-400" />
-                            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Typography & Scaling</span>
+                {/* ── TYPOGRAPHY ── */}
+                <div className="bg-white dark:bg-slate-900 rounded-2xl p-4 sm:p-5 border border-slate-200/80 dark:border-slate-800 shadow-xs">
+                    <div className="flex items-center gap-2 mb-3.5">
+                        <Type className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+                        <span className="text-[11px] font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">Typography & Page Fit</span>
+                    </div>
+                    <div className="space-y-3.5">
+                        {/* Font Family Selector */}
+                        <div>
+                            <label className="block text-[10px] font-bold text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wide">Font Style</label>
+                            <select 
+                                className="w-full bg-slate-50/60 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs sm:text-sm text-slate-800 dark:text-slate-100 font-semibold px-3 py-2.5 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all cursor-pointer shadow-xs"
+                                value={fontFamily}
+                                onChange={e => setFontFamily(e.target.value)}
+                            >
+                                {ATS_FONTS.map(f => <option key={f.value} value={f.value}>{f.label}</option>)}
+                            </select>
                         </div>
                         
-                        <div className="space-y-4">
-                            {/* Font Family Selector */}
-                            <div>
-                                <label className="block text-[10px] font-semibold text-slate-400 mb-1.5 uppercase tracking-wide">Font Style</label>
-                                <select 
-                                    className="w-full bg-white border border-slate-200 rounded-lg text-sm text-slate-700 font-semibold px-3 py-2 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all cursor-pointer"
-                                    value={fontFamily}
-                                    onChange={e => setFontFamily(e.target.value)}
-                                >
-                                    {ATS_FONTS.map(f => <option key={f.value} value={f.value}>{f.label}</option>)}
-                                </select>
+                        {/* Font Size Slider */}
+                        <div>
+                            <div className="flex justify-between items-end mb-1.5">
+                                <label className="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Font Size Scaling</label>
+                                <span className="text-[11px] font-mono font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/60 px-2 py-0.5 rounded-md border border-indigo-200/60 dark:border-indigo-800/60">
+                                    {(parseFloat(currentTpl.bodySize) + fontSizeOffset).toFixed(1)}pt
+                                </span>
                             </div>
-                            
-                            {/* Font Size Slider */}
-                            <div>
-                                <div className="flex justify-between items-end mb-1.5">
-                                    <label className="block text-[10px] font-semibold text-slate-400 uppercase tracking-wide">Font Size Boost</label>
-                                    <span className="text-[11px] font-mono font-bold text-blue-600">
-                                        {(parseFloat(currentTpl.bodySize) + fontSizeOffset).toFixed(1)}pt
-                                    </span>
-                                </div>
-                                <div className="flex items-center gap-3">
-                                    <span className="text-[10px] text-slate-400 font-semibold shrink-0">-2pt</span>
-                                    <input
-                                        type="range"
-                                        min="-2"
-                                        max="3"
-                                        step="0.5"
-                                        value={fontSizeOffset}
-                                        onChange={(e) => setFontSizeOffset(parseFloat(e.target.value))}
-                                        className="flex-1 h-1.5 accent-blue-500 cursor-pointer"
-                                    />
-                                    <span className="text-[10px] text-slate-400 font-semibold shrink-0">+3pt</span>
-                                </div>
-                                <p className="text-[10px] text-slate-400 mt-1.5 leading-snug">Adjust to perfectly fill the page. ATS parsers prefer standard fonts like Arial or Times New Roman.</p>
+                            <div className="flex items-center gap-3">
+                                <span className="text-[10px] text-slate-400 dark:text-slate-500 font-semibold shrink-0">-2pt</span>
+                                <input
+                                    type="range"
+                                    min="-2"
+                                    max="3"
+                                    step="0.5"
+                                    value={fontSizeOffset}
+                                    onChange={(e) => setFontSizeOffset(parseFloat(e.target.value))}
+                                    className="flex-1 h-1.5 accent-indigo-600 cursor-pointer"
+                                />
+                                <span className="text-[10px] text-slate-400 dark:text-slate-500 font-semibold shrink-0">+3pt</span>
                             </div>
+                            <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-1.5 leading-snug">
+                                Adjust slider to expand or fit your resume onto exactly 1 standard A4 page.
+                            </p>
                         </div>
                     </div>
+                </div>
 
-                    {/* 1. Personal */}
-                    <Section icon={User} title="Header & Contact" number="1" color="text-blue-500" accent="bg-blue-500">
+                {/* 1. Personal */}
+                <div id="section-personal">
+                    <Section icon={User} title="Header & Contact" number="1" color="text-indigo-600 dark:text-indigo-400" accent="bg-indigo-600">
                         <div className="grid grid-cols-2 gap-3">
                             <div className="col-span-2"><label className={labelCls}>Full Name</label><input name="name" value={resumeData.personal.name} onChange={handlePersonalChange} className={inputCls} placeholder="e.g. Alex Johnson" /></div>
                             <div><label className={labelCls}>Email</label><input name="email" value={resumeData.personal.email} onChange={handlePersonalChange} className={inputCls} placeholder="alex@email.com" /></div>
@@ -802,16 +1013,20 @@ const AiResumeBuilder = () => {
                             <div className="col-span-2"><label className={labelCls}>Location</label><input name="location" value={resumeData.personal.location} onChange={handlePersonalChange} className={inputCls} placeholder="City, State" /></div>
                         </div>
                     </Section>
+                </div>
 
-                    {/* 2. Summary */}
-                    <Section icon={Sparkles} title="Career Objective" number="2" color="text-indigo-500" accent="bg-indigo-500">
+                {/* 2. Summary */}
+                <div id="section-summary">
+                    <Section icon={Sparkles} title="Career Objective" number="2" color="text-blue-600 dark:text-blue-400" accent="bg-blue-600">
                         <textarea value={resumeData.summary} onChange={(e) => { setResumeData(prev => ({ ...prev, summary: e.target.value })); markAsEdited(); }} className={`${inputCls} h-24 resize-none pb-2`} placeholder="Write a rough summary — AI will polish it..." />
                         <div className="flex justify-end mt-2"><AiBtn onClick={handleOptimizeSummary} loading={loadingSummary} /></div>
                     </Section>
+                </div>
 
-                    {/* 3. Education */}
-                    <Section icon={BookOpen} title="Education" number="3" color="text-emerald-500" accent="bg-emerald-500">
-                        {resumeData.education.map((edu, i) => (
+                {/* 3. Education */}
+                <div id="section-education">
+                    <Section icon={BookOpen} title="Education" number="3" color="text-emerald-600 dark:text-emerald-400" accent="bg-emerald-600" count={(resumeData.education || []).length}>
+                        {(resumeData.education || []).map((edu, i) => (
                             <ItemCard key={i} onDelete={() => removeArrayItem('education', i)}>
                                 <div className="grid grid-cols-2 gap-2.5">
                                     <input placeholder="Institution" value={edu.institution} onChange={e => handleArrayChange('education', i, 'institution', e.target.value)} className={`${inputCls} col-span-2`} />
@@ -822,12 +1037,14 @@ const AiResumeBuilder = () => {
                                 </div>
                             </ItemCard>
                         ))}
-                        <AddBtn onClick={() => addArrayItem('education', { institution: '', degree: '', duration: '', location: '', cgpa: '' })} label="Add Education" color="emerald" />
+                        <AddBtn onClick={() => addArrayItem('education', { institution: '', degree: '', duration: '', location: '', cgpa: '' })} label="Add Education" />
                     </Section>
+                </div>
 
-                    {/* 4. Experience */}
-                    <Section icon={Briefcase} title="Experience" number="4" color="text-purple-500" accent="bg-purple-500">
-                        {resumeData.experience.map((exp, i) => (
+                {/* 4. Experience */}
+                <div id="section-experience">
+                    <Section icon={Briefcase} title="Work Experience" number="4" color="text-purple-600 dark:text-purple-400" accent="bg-purple-600" count={(resumeData.experience || []).length}>
+                        {(resumeData.experience || []).map((exp, i) => (
                             <ItemCard key={i} onDelete={() => removeArrayItem('experience', i)}>
                                 <div className="grid grid-cols-2 gap-2.5 mb-2.5">
                                     <input placeholder="Job Title" value={exp.title} onChange={e => handleArrayChange('experience', i, 'title', e.target.value)} className={inputCls} />
@@ -838,16 +1055,18 @@ const AiResumeBuilder = () => {
                                 </div>
                                 <textarea placeholder="Describe what you did — use rough notes, AI will rewrite..." value={exp.description} onChange={e => handleArrayChange('experience', i, 'description', e.target.value)} className={`${inputCls} h-24 resize-none mb-2`} />
                                 <div className="flex justify-end">
-                                    <AiBtn onClick={() => handleOptimizeExp(i, 'experience')} loading={loadingExp === `experience-${i}`} label="AI Rewrite" colorCls="bg-purple-50 text-purple-600 hover:bg-purple-100" />
+                                    <AiBtn onClick={() => handleOptimizeExp(i, 'experience')} loading={loadingExp === `experience-${i}`} label="AI Rewrite" colorCls="bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 hover:bg-purple-100 dark:hover:bg-purple-900/60 border border-purple-200/60 dark:border-purple-800/60" />
                                 </div>
                             </ItemCard>
                         ))}
-                        <AddBtn onClick={() => addArrayItem('experience', { title: '', company: '', techStack: '', duration: '', location: '', description: '' })} label="Add Experience" color="purple" />
+                        <AddBtn onClick={() => addArrayItem('experience', { title: '', company: '', techStack: '', duration: '', location: '', description: '' })} label="Add Experience" />
                     </Section>
+                </div>
 
-                    {/* 5. Projects */}
-                    <Section icon={Layers} title="Projects" number="5" color="text-orange-500" accent="bg-orange-500">
-                        {resumeData.projects.map((proj, i) => (
+                {/* 5. Projects */}
+                <div id="section-projects">
+                    <Section icon={Layers} title="Key Projects" number="5" color="text-amber-600 dark:text-amber-400" accent="bg-amber-600" count={(resumeData.projects || []).length}>
+                        {(resumeData.projects || []).map((proj, i) => (
                             <ItemCard key={i} onDelete={() => removeArrayItem('projects', i)}>
                                 <div className="grid grid-cols-2 gap-2.5 mb-2.5">
                                     <input placeholder="Project Name" value={proj.name} onChange={e => handleArrayChange('projects', i, 'name', e.target.value)} className={`${inputCls} col-span-2`} />
@@ -858,116 +1077,230 @@ const AiResumeBuilder = () => {
                                 </div>
                                 <textarea placeholder="Key highlights & accomplishments..." value={proj.description} onChange={e => handleArrayChange('projects', i, 'description', e.target.value)} className={`${inputCls} h-24 resize-none mb-2`} />
                                 <div className="flex justify-end">
-                                    <AiBtn onClick={() => handleOptimizeExp(i, 'projects')} loading={loadingExp === `projects-${i}`} label="AI Rewrite" colorCls="bg-orange-50 text-orange-600 hover:bg-orange-100" />
+                                    <AiBtn onClick={() => handleOptimizeExp(i, 'projects')} loading={loadingExp === `projects-${i}`} label="AI Rewrite" colorCls="bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-900/60 border border-amber-200/60 dark:border-amber-800/60" />
                                 </div>
                             </ItemCard>
                         ))}
-                        <AddBtn onClick={() => addArrayItem('projects', { name: '', github: '', liveLink: '', techStack: '', duration: '', description: '' })} label="Add Project" color="orange" />
+                        <AddBtn onClick={() => addArrayItem('projects', { name: '', github: '', liveLink: '', techStack: '', duration: '', description: '' })} label="Add Project" />
                     </Section>
+                </div>
 
-                    {/* 6. Certifications */}
-                    <Section icon={Award} title="Certifications" number="6" color="text-yellow-500" accent="bg-yellow-500">
+                {/* 6. Certifications */}
+                <div id="section-certifications">
+                    <Section icon={Award} title="Certifications" number="6" color="text-orange-600 dark:text-orange-400" accent="bg-orange-600" count={(resumeData.certifications || []).length}>
                         <div className="space-y-3 mb-3">
-                            {resumeData.certifications.map((cert, i) => (
+                            {(resumeData.certifications || []).map((cert, i) => (
                                 <div key={i} className="flex gap-2 items-start group">
                                     <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-2">
                                         <input value={cert.name} onChange={e => handleArrayChange('certifications', i, 'name', e.target.value)} className={inputCls} placeholder="Certification Name" />
                                         <input value={cert.link} onChange={e => handleArrayChange('certifications', i, 'link', e.target.value)} className={inputCls} placeholder="Credential URL (Optional)" />
                                     </div>
-                                    <button onClick={() => removeArrayItem('certifications', i)} className="shrink-0 p-2.5 rounded-xl hover:bg-red-50 hover:text-red-500 text-slate-300 transition-all bg-white shadow-sm border border-slate-100 hover:border-red-100 flex items-center justify-center h-[42px] w-[42px]" title="Remove"><Trash2 className="w-4 h-4" /></button>
+                                    <button 
+                                        type="button"
+                                        onClick={() => removeArrayItem('certifications', i)} 
+                                        className="shrink-0 p-2.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/50 hover:border-rose-200 dark:hover:border-rose-900 transition-all flex items-center justify-center h-[42px] w-[42px] cursor-pointer shadow-xs" 
+                                        title="Remove"
+                                    >
+                                        <Trash2 className="w-4 h-4" />
+                                    </button>
                                 </div>
                             ))}
                         </div>
-                        <AddBtn onClick={() => addArrayItem('certifications', { name: '', link: '' })} label="Add Certification" color="yellow" />
+                        <AddBtn onClick={() => addArrayItem('certifications', { name: '', link: '' })} label="Add Certification" />
                     </Section>
+                </div>
 
-                    {/* 7. Skills */}
-                    <Section icon={Code} title="Technical Skills" number="7" color="text-pink-500" accent="bg-pink-500">
+                {/* 7. Skills */}
+                <div id="section-skills">
+                    <Section icon={Code} title="Technical Skills" number="7" color="text-pink-600 dark:text-pink-400" accent="bg-pink-600" count={(resumeData.skills || []).length}>
                         <div className="space-y-3 mb-3">
-                            {resumeData.skills.map((skill, i) => (
+                            {(resumeData.skills || []).map((skill, i) => (
                                 <div key={i} className="flex gap-2 items-center group">
                                     <div className="flex-1 grid grid-cols-[110px_1fr] gap-2">
                                         <input value={skill.category} onChange={e => handleArrayChange('skills', i, 'category', e.target.value)} className={`${inputCls} font-semibold !px-2`} placeholder="Category" />
                                         <input value={skill.items} onChange={e => handleArrayChange('skills', i, 'items', e.target.value)} className={inputCls} placeholder="Python, React, Node.js..." />
                                     </div>
-                                    <button onClick={() => removeArrayItem('skills', i)} className="shrink-0 p-2.5 rounded-xl hover:bg-red-50 hover:text-red-500 text-slate-300 transition-all bg-white shadow-sm border border-slate-100 hover:border-red-100 flex items-center justify-center h-[42px] w-[42px]" title="Remove"><Trash2 className="w-4 h-4" /></button>
+                                    <button 
+                                        type="button"
+                                        onClick={() => removeArrayItem('skills', i)} 
+                                        className="shrink-0 p-2.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/50 hover:border-rose-200 dark:hover:border-rose-900 transition-all flex items-center justify-center h-[42px] w-[42px] cursor-pointer shadow-xs" 
+                                        title="Remove"
+                                    >
+                                        <Trash2 className="w-4 h-4" />
+                                    </button>
                                 </div>
                             ))}
                         </div>
-                        <AddBtn onClick={() => addArrayItem('skills', { category: '', items: '' })} label="Add Skill Category" color="pink" />
+                        <AddBtn onClick={() => addArrayItem('skills', { category: '', items: '' })} label="Add Skill Category" />
                     </Section>
                 </div>
+
+                {/* 8. Achievements & Awards (Other Sections) */}
+                <div id="section-achievements">
+                    <Section icon={Trophy} title="Achievements & Awards" number="8" color="text-amber-500 dark:text-amber-400" accent="bg-amber-500" count={(resumeData.achievements || []).length}>
+                        <div className="space-y-3 mb-3">
+                            {(resumeData.achievements || []).map((ach, i) => (
+                                <ItemCard key={i} onDelete={() => removeArrayItem('achievements', i)}>
+                                    <div className="space-y-2">
+                                        <input 
+                                            placeholder="Achievement Title (e.g. 1st Place National Hackathon 2025)" 
+                                            value={ach.title || ''} 
+                                            onChange={e => handleArrayChange('achievements', i, 'title', e.target.value)} 
+                                            className={`${inputCls} font-semibold`} 
+                                        />
+                                        <textarea 
+                                            placeholder="Brief description, metrics, or impact..." 
+                                            value={ach.description || ''} 
+                                            onChange={e => handleArrayChange('achievements', i, 'description', e.target.value)} 
+                                            className={`${inputCls} h-16 resize-none`} 
+                                        />
+                                        <div className="flex justify-end pt-1">
+                                            <AiBtn onClick={() => handleOptimizeExp(i, 'achievements')} loading={loadingExp === `achievements-${i}`} label="AI Polish" colorCls="bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-900/60 border border-amber-200/60 dark:border-amber-800/60" />
+                                        </div>
+                                    </div>
+                                </ItemCard>
+                            ))}
+                        </div>
+                        <AddBtn onClick={() => addArrayItem('achievements', { title: '', description: '' })} label="Add Achievement / Award" />
+                    </Section>
+                </div>
+                {/* Bottom padding spacer for smooth scrolling */}
+                <div className="h-12 shrink-0" aria-hidden="true" />
             </div>
 
-            {/* ═══ RIGHT: Preview Panel ═══ */}
-            <div className={`w-full xl:w-[56%] flex flex-col bg-slate-100 md:rounded-3xl overflow-hidden max-h-full print:w-full print:bg-white print:block ${mobileTab === 'preview' ? 'flex' : 'hidden xl:flex'}`}>
+            {/* ═══ RIGHT: 100% Fixed Live Preview Panel ═══ */}
+            <div className={`w-full lg:w-[52%] xl:w-[53%] h-full min-h-0 max-h-full flex flex-col bg-slate-100/90 dark:bg-slate-950/90 rounded-2xl border border-slate-200/80 dark:border-slate-800 overflow-hidden shadow-xs shrink-0 print:w-full print:bg-white print:border-none print:static print:h-auto ${mobileTab === 'preview' ? 'flex' : 'hidden lg:flex'}`}>
 
                 {/* ── Toolbar ── */}
-                <div className="flex items-center justify-between bg-slate-800 px-3 md:px-5 py-2.5 md:py-3 print:hidden shrink-0 gap-2 md:gap-3">
-                    <div className="hidden sm:flex items-center gap-2 shrink-0">
-                        <FileText className="w-4 h-4 text-slate-400" />
-                        <span className="text-white text-sm font-semibold">Live Preview</span>
-                        <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" title="Live" />
+                <div className="flex items-center justify-between bg-white dark:bg-slate-900 border-b border-slate-200/80 dark:border-slate-800 px-4 md:px-5 py-3 print:hidden shrink-0 gap-3">
+                    <div className="flex items-center gap-2.5 shrink-0">
+                        <span className="relative flex h-2.5 w-2.5">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500" />
+                        </span>
+                        <span className="text-slate-800 dark:text-slate-100 text-xs sm:text-sm font-bold">Live ATS Preview</span>
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-800/60 hidden sm:inline-block">
+                            Standard A4
+                        </span>
                     </div>
-                    <span className="sm:hidden w-2 h-2 rounded-full bg-green-400 animate-pulse shrink-0" />
                     <div className="flex items-center gap-2 ml-auto">
-                        <div className="flex items-center gap-1 bg-slate-700 rounded-xl px-2 py-1">
-                            <button onClick={() => setZoom(z => Math.max(30, z - 10))} className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-600 transition-colors"><ZoomOut className="w-3.5 h-3.5" /></button>
-                            <span className="text-xs text-slate-300 font-mono w-8 text-center">{zoom}%</span>
-                            <button onClick={() => setZoom(z => Math.min(120, z + 10))} className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-600 transition-colors"><ZoomIn className="w-3.5 h-3.5" /></button>
+                        <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700/80 rounded-xl px-1.5 py-1 shadow-xs">
+                            <button 
+                                type="button"
+                                onClick={() => setZoom(z => Math.max(30, z - 10))} 
+                                className="p-1 rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors cursor-pointer" 
+                                title="Zoom Out"
+                            >
+                                <ZoomOut className="w-3.5 h-3.5" />
+                            </button>
+                            <span className="text-xs text-slate-700 dark:text-slate-200 font-mono w-9 text-center font-bold">{zoom}%</span>
+                            <button 
+                                type="button"
+                                onClick={() => setZoom(z => Math.min(120, z + 10))} 
+                                className="p-1 rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors cursor-pointer" 
+                                title="Zoom In"
+                            >
+                                <ZoomIn className="w-3.5 h-3.5" />
+                            </button>
+                            <button 
+                                type="button"
+                                onClick={fitZoom} 
+                                className="p-1 rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors cursor-pointer ml-0.5" 
+                                title="Fit Width"
+                            >
+                                <Maximize2 className="w-3.5 h-3.5" />
+                            </button>
                         </div>
-                        <button onClick={handleDownload} className="flex items-center gap-2 px-3 md:px-4 py-2 bg-blue-600 hover:bg-blue-500 active:scale-95 text-white rounded-xl text-sm font-semibold transition-all shadow-lg shadow-blue-900/40 shrink-0">
+                        <button 
+                            type="button"
+                            onClick={handleDownload} 
+                            className="flex items-center gap-2 px-3.5 sm:px-4 py-2 bg-indigo-600 hover:bg-indigo-500 active:scale-95 text-white rounded-xl text-xs sm:text-sm font-bold transition-all shadow-sm hover:shadow-md hover:shadow-indigo-500/20 cursor-pointer shrink-0"
+                        >
                             <Download className="w-4 h-4" />
-                            <span className="hidden md:inline">Download PDF</span>
+                            <span className="hidden sm:inline">Download PDF</span>
+                            <span className="sm:hidden">PDF</span>
                         </button>
                     </div>
                 </div>
 
                 {/* ── Preview area ── */}
-                <div className="flex-1 overflow-auto w-full bg-slate-100 print:bg-white flex justify-center p-3 md:p-6 print:p-0">
+                <div 
+                    ref={previewContainerRef}
+                    className="flex-1 min-h-0 overflow-y-auto overflow-x-auto w-full bg-slate-200/60 dark:bg-slate-950 print:bg-white flex justify-center items-start p-4 sm:p-6 print:p-0 select-none custom-builder-scroll"
+                    style={{ overscrollBehavior: 'contain' }}
+                >
                     <div
-                        id="preview-zoom-container"
-                        className="transition-transform duration-200"
-                        style={{ ...zoomStyle, width: '794px', minHeight: '1123px' }}
+                        style={{
+                            width: `${scaledWidth}px`,
+                            height: `${scaledHeight}px`,
+                            position: 'relative',
+                            flexShrink: 0,
+                            transition: 'width 0.15s ease-out, height 0.15s ease-out',
+                        }}
                     >
                         <div
-                            id="resume-print"
-                            ref={printRef}
+                            id="preview-zoom-container"
                             style={{
-                                background: '#fff',
-                                boxShadow: '0 25px 50px -12px rgba(0,0,0,.25)',
-                                minHeight: '1123px',
+                                transform: `scale(${zoom / 100})`,
+                                transformOrigin: 'top left',
                                 width: '794px',
-                                padding: currentTpl.pagePadding,
-                                boxSizing: 'border-box',
+                                minHeight: '1123px',
+                                position: 'absolute',
+                                top: 0,
+                                left: 0,
                             }}
                         >
-                            <ResumeContent
-                                data={resumeData}
-                                templateId={selectedTemplate}
-                                fontSizeOffset={fontSizeOffset}
-                                fontFamily={fontFamily}
-                            />
+                            <div
+                                id="resume-print"
+                                ref={printRef}
+                                style={{
+                                    background: '#ffffff',
+                                    color: '#000000',
+                                    boxShadow: '0 20px 40px -15px rgba(0,0,0,0.3)',
+                                    minHeight: '1123px',
+                                    width: '794px',
+                                    padding: currentTpl.pagePadding,
+                                    boxSizing: 'border-box',
+                                }}
+                            >
+                                <ResumeContent
+                                    data={resumeData}
+                                    templateId={selectedTemplate}
+                                    fontSizeOffset={fontSizeOffset}
+                                    fontFamily={fontFamily}
+                                />
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-
-
             {/* ── MOBILE: Sticky bottom tab bar ── */}
-            <div className="xl:hidden fixed bottom-0 left-0 right-0 z-[100] print:hidden bg-white/95 backdrop-blur-md border-t border-slate-200 flex items-center"
+            <div className="lg:hidden fixed bottom-0 left-0 right-0 z-[100] print:hidden bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-t border-slate-200/80 dark:border-slate-800 flex items-center shadow-lg"
                 style={{ paddingBottom: 'env(safe-area-inset-bottom, 8px)' }}>
-                <button onClick={() => handleMobileTabChange('edit')} className={`relative flex-1 flex flex-col items-center justify-center py-3 gap-0.5 transition-colors ${mobileTab === 'edit' ? 'text-blue-600' : 'text-slate-400'}`}>
-                    <FileText className="w-5 h-5" /><span className="text-[11px] font-semibold">Edit</span>
-                    {mobileTab === 'edit' && <span className="absolute top-0 left-1/2 -translate-x-1/2 w-10 h-0.5 bg-blue-600 rounded-full" />}
+                <button 
+                    type="button"
+                    onClick={() => handleMobileTabChange('edit')} 
+                    className={`relative flex-1 flex flex-col items-center justify-center py-3 gap-0.5 transition-colors cursor-pointer ${mobileTab === 'edit' ? 'text-indigo-600 dark:text-indigo-400 font-bold' : 'text-slate-400 dark:text-slate-500'}`}
+                >
+                    <FileText className="w-5 h-5" /><span className="text-[11px]">Edit Details</span>
+                    {mobileTab === 'edit' && <span className="absolute top-0 left-1/2 -translate-x-1/2 w-10 h-0.5 bg-indigo-600 rounded-full" />}
                 </button>
-                <button onClick={handleDownload} className="mx-4 -mt-6 w-14 h-14 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-xl shadow-blue-500/40 active:scale-95 transition-transform shrink-0" title="Download PDF">
+                <button 
+                    type="button"
+                    onClick={handleDownload} 
+                    className="mx-4 -mt-6 w-14 h-14 rounded-full bg-indigo-600 hover:bg-indigo-500 flex items-center justify-center shadow-xl shadow-indigo-600/40 active:scale-95 transition-transform shrink-0 cursor-pointer text-white" 
+                    title="Download PDF"
+                >
                     <Download className="w-6 h-6 text-white" />
                 </button>
-                <button onClick={() => handleMobileTabChange('preview')} className={`relative flex-1 flex flex-col items-center justify-center py-3 gap-0.5 transition-colors ${mobileTab === 'preview' ? 'text-blue-600' : 'text-slate-400'}`}>
-                    <Eye className="w-5 h-5" /><span className="text-[11px] font-semibold">Preview</span>
-                    {mobileTab === 'preview' && <span className="absolute top-0 left-1/2 -translate-x-1/2 w-10 h-0.5 bg-blue-600 rounded-full" />}
+                <button 
+                    type="button"
+                    onClick={() => handleMobileTabChange('preview')} 
+                    className={`relative flex-1 flex flex-col items-center justify-center py-3 gap-0.5 transition-colors cursor-pointer ${mobileTab === 'preview' ? 'text-indigo-600 dark:text-indigo-400 font-bold' : 'text-slate-400 dark:text-slate-500'}`}
+                >
+                    <Eye className="w-5 h-5" /><span className="text-[11px]">Live Preview</span>
+                    {mobileTab === 'preview' && <span className="absolute top-0 left-1/2 -translate-x-1/2 w-10 h-0.5 bg-indigo-600 rounded-full" />}
                 </button>
             </div>
         </div>

@@ -1,5 +1,13 @@
 import { API_BASE_URL } from '../utils/apiBaseUrl';
 
+const clearAuthSession = () => {
+  try {
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('user');
+    localStorage.removeItem('userData');
+  } catch (_) {}
+};
+
 // ─── Auth API ─────────────────────────────────────────────────────────────────
 export const authAPI = {
   register: async (userData) => {
@@ -25,12 +33,17 @@ export const authAPI = {
 export const userAPI = {
   getProfile: async () => {
     const token = localStorage.getItem('authToken');
+    if (!token) return null;
     const response = await fetch(`${API_BASE_URL}/auth/me`, {
       headers: {
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json',
       },
     });
+    if (response.status === 401) {
+      clearAuthSession();
+      return null;
+    }
     return response.json();
   },
 
@@ -80,6 +93,24 @@ export const userAPI = {
     });
     if (!response.ok) return { onboarded: true }; // non-critical, don't throw
     return response.json();
+  },
+
+  deleteProfile: async () => {
+    const token = localStorage.getItem('authToken');
+    if (!token) throw new Error('Authentication required');
+    const response = await fetch(`${API_BASE_URL}/auth/profile`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      throw new Error(data?.message || 'Failed to delete profile');
+    }
+    clearAuthSession();
+    return data;
   },
 };
 
@@ -137,12 +168,17 @@ export const skillsAPI = {
 export const currentUserAPI = {
   me: async () => {
     const token = localStorage.getItem('authToken');
+    if (!token) return null;
     const response = await fetch(`${API_BASE_URL}/auth/me`, {
       headers: {
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json',
       },
     });
+    if (response.status === 401) {
+      clearAuthSession();
+      return null;
+    }
     return response.json();
   },
 
@@ -151,7 +187,26 @@ export const currentUserAPI = {
   },
 };
 
+
 // ─── Internship API ───────────────────────────────────────────────────────────
+
+/** Shared helper: fetch with a 15-second abort timeout */
+const fetchWithTimeout = async (url, options = {}, timeoutMs = 15000) => {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const response = await fetch(url, { ...options, signal: controller.signal });
+    return response;
+  } catch (err) {
+    if (err.name === 'AbortError') {
+      throw new Error('Request timed out. Please check your connection and try again.');
+    }
+    throw err;
+  } finally {
+    clearTimeout(timeoutId);
+  }
+};
+
 export const internshipAPI = {
   getLatestInternships: async (filters = {}, refresh = false) => {
     const token = localStorage.getItem('authToken');
@@ -161,12 +216,16 @@ export const internshipAPI = {
       if (skills) params.set('skills', skills);
     }
     if (filters?.location) params.set('location', String(filters.location));
+    if (filters?.locations) {
+      const locs = Array.isArray(filters.locations) ? filters.locations.join(',') : String(filters.locations || '');
+      if (locs) params.set('locations', locs);
+    }
     if (filters?.domain) params.set('domain', String(filters.domain));
-    params.set('limit', '50');
+    params.set('limit', String(filters?.limit || '100'));
     if (refresh) params.set('refresh', 'true');
 
     const url = `${API_BASE_URL}/internships/latest?${params.toString()}`;
-    const response = await fetch(url, {
+    const response = await fetchWithTimeout(url, {
       headers: {
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json',
@@ -177,7 +236,7 @@ export const internshipAPI = {
 
   refreshInternships: async () => {
     const token = localStorage.getItem('authToken');
-    const response = await fetch(`${API_BASE_URL}/internships/refresh`, {
+    const response = await fetchWithTimeout(`${API_BASE_URL}/internships/refresh`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -212,7 +271,7 @@ export const internshipAPI = {
       }
     } catch {}
 
-    const response = await fetch(`${API_BASE_URL}/recommendations`, {
+    const response = await fetchWithTimeout(`${API_BASE_URL}/recommendations`, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -224,7 +283,7 @@ export const internshipAPI = {
 
   getAllInternships: async () => {
     const token = localStorage.getItem('authToken');
-    const response = await fetch(`${API_BASE_URL}/internships`, {
+    const response = await fetchWithTimeout(`${API_BASE_URL}/internships`, {
       headers: {
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json',
@@ -240,7 +299,7 @@ export const internshipAPI = {
     params.set('limit', String(limit));
     if (search) params.set('search', search);
     if (skills.length > 0) params.set('skills', skills.join(','));
-    const response = await fetch(`${API_BASE_URL}/internships/discover?${params.toString()}`, {
+    const response = await fetchWithTimeout(`${API_BASE_URL}/internships/discover?${params.toString()}`, {
       headers: {
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json',
@@ -250,16 +309,22 @@ export const internshipAPI = {
   },
 };
 
+
 // ─── Applications API ─────────────────────────────────────────────────────────
 export const applicationsAPI = {
   list: async () => {
     const token = localStorage.getItem('authToken');
+    if (!token) return { applications: [] };
     const response = await fetch(`${API_BASE_URL}/applications`, {
       headers: {
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json',
       },
     });
+    if (response.status === 401) {
+      clearAuthSession();
+      return { applications: [] };
+    }
     if (!response.ok) {
       const err = await response.json().catch(() => ({}));
       throw new Error(err?.message || 'Failed to load applications');
@@ -282,23 +347,33 @@ export const applicationsAPI = {
 
   recentActivity: async () => {
     const token = localStorage.getItem('authToken');
+    if (!token) return [];
     const response = await fetch(`${API_BASE_URL}/applications/recent-activity`, {
       headers: {
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json',
       },
     });
+    if (response.status === 401) {
+      clearAuthSession();
+      return [];
+    }
     return response.json();
   },
 
   upcomingDeadlines: async () => {
     const token = localStorage.getItem('authToken');
+    if (!token) return [];
     const response = await fetch(`${API_BASE_URL}/applications/upcoming-deadlines`, {
       headers: {
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json',
       },
     });
+    if (response.status === 401) {
+      clearAuthSession();
+      return [];
+    }
     return response.json();
   },
 
@@ -516,77 +591,4 @@ export const resumeAPI = {
   },
 };
 
-// ─── Scraper API ──────────────────────────────────────────────────────────────
-export const scraperAPI = {
-  getStats: async () => {
-    try {
-      const response = await fetch(`${API_BASE_URL}/scraper/stats`);
-      return response.json();
-    } catch (error) {
-      console.error('Failed to fetch scraper stats:', error);
-      return { success: false, data: {} };
-    }
-  },
-
-  getStatus: async () => {
-    try {
-      const response = await fetch(`${API_BASE_URL}/scraper/status`);
-      return response.json();
-    } catch (error) {
-      console.error('Failed to fetch scraper status:', error);
-      return { success: false, data: {} };
-    }
-  },
-
-  trigger: async () => {
-    const token = localStorage.getItem('authToken');
-    try {
-      const response = await fetch(`${API_BASE_URL}/scraper/trigger`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
-      return response.json();
-    } catch (error) {
-      console.error('Failed to trigger scraper:', error);
-      return { success: false };
-    }
-  },
-
-  stop: async () => {
-    const token = localStorage.getItem('authToken');
-    try {
-      const response = await fetch(`${API_BASE_URL}/scraper/stop`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
-      return response.json();
-    } catch (error) {
-      console.error('Failed to stop scraper:', error);
-      return { success: false };
-    }
-  },
-
-  getScrapedInternships: async (filters = {}) => {
-    try {
-      const params = new URLSearchParams();
-      if (filters?.sources) {
-        params.set('sources', Array.isArray(filters.sources) ? filters.sources.join(',') : filters.sources);
-      }
-      if (filters?.limit) params.set('limit', filters.limit);
-      if (filters?.page) params.set('page', filters.page);
-
-      const url = `${API_BASE_URL}/internships${params.toString() ? `?${params.toString()}` : ''}`;
-      const response = await fetch(url);
-      return response.json();
-    } catch (error) {
-      console.error('Failed to fetch scraped internships:', error);
-      return { success: false, data: [] };
-    }
-  },
-};
+export const resumeService = resumeAPI;

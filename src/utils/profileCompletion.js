@@ -47,6 +47,9 @@ export const calcProfileCompletion = (profile = {}, user = {}) => {
     // 10. resume uploaded
     !!(
       user?.resume?.text ||
+      user?.resume?.fileName ||
+      profile?.resume?.fileName ||
+      profile?.resume?.text ||
       (Array.isArray(user?.resume?.skills) && user.resume.skills.length > 0)
     ),
   ];

@@ -267,17 +267,17 @@ const LiveAnswerBox = ({ isTimerRunning, micEnabled = true, timer, maxTimer, onS
     const timerPct = maxTimer ? (timer / maxTimer) * 100 : 100;
 
     return (
-        <div className="flex flex-col gap-2 md:gap-6 max-w-2xl mx-auto w-full px-1 sm:px-2">
-            <div className="relative bg-white/90 backdrop-blur-xl rounded-2xl sm:rounded-[2rem] md:rounded-[3rem] p-2.5 sm:p-5 md:p-8 border border-white shadow-[0_30px_60px_-15px_rgba(0,0,0,0.1)] overflow-x-hidden transition-all duration-500">
+        <div className="flex flex-col gap-2 md:gap-4 max-w-2xl mx-auto w-full px-1 sm:px-2">
+            <div className="relative bg-white dark:bg-slate-900 rounded-2xl sm:rounded-3xl p-4 sm:p-6 border border-slate-200/80 dark:border-slate-800 shadow-xs overflow-x-hidden transition-all duration-300">
 
-                <div className="flex flex-col items-center gap-2 sm:gap-4 md:gap-8 relative z-10">
-                    <div className="w-full flex flex-col items-center gap-1.5 sm:gap-2 md:gap-4">
-                        <div className="h-8 sm:h-12 md:h-16 flex items-center justify-center gap-1 px-4">
+                <div className="flex flex-col items-center gap-3 sm:gap-4 relative z-10">
+                    <div className="w-full flex flex-col items-center gap-2 sm:gap-3">
+                        <div className="h-10 sm:h-12 flex items-center justify-center gap-1 px-4">
                             {audioLevels.map((h, i) => (
                                 <motion.div
                                     key={i}
                                     style={{ height: `${h}px` }}
-                                    className="w-0.75 sm:w-1 md:w-1.5 rounded-full bg-gradient-to-t from-indigo-500 to-violet-600 opacity-80"
+                                    className="w-1 sm:w-1.5 rounded-full bg-indigo-500 dark:bg-indigo-400 opacity-80"
                                     animate={{ height: isRecording ? Math.max(3, h) : 3 }}
                                 />
                             ))}
@@ -289,26 +289,26 @@ const LiveAnswerBox = ({ isTimerRunning, micEnabled = true, timer, maxTimer, onS
                                     initial={{ opacity: 0, y: 5 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     exit={{ opacity: 0 }}
-                                    className="absolute top-12 sm:top-16 md:top-24 left-0 right-0 px-4 md:px-8 text-center pointer-events-none"
+                                    className="w-full px-2 sm:px-4 text-center pointer-events-none"
                                 >
-                                    <p className="text-[9px] sm:text-xs md:text-base font-medium text-slate-500 leading-relaxed max-w-xs sm:max-w-md mx-auto line-clamp-1 italic">
+                                    <p className="text-xs sm:text-sm font-medium text-slate-600 dark:text-slate-300 leading-relaxed max-w-md mx-auto line-clamp-2 italic">
                                         {typedText}
-                                        <span className="text-indigo-400 opacity-60">{interimText}</span>
+                                        <span className="text-indigo-500 dark:text-indigo-400 opacity-70 ml-1">{interimText}</span>
                                     </p>
                                 </motion.div>
                             )}
                         </AnimatePresence>
 
                         <div className="flex flex-col items-center">
-                            <div className="flex items-center gap-1.5 sm:gap-2 md:gap-3 bg-indigo-50/50 px-2 sm:px-2.5 py-1 md:px-4 md:py-2 rounded-full border border-indigo-100/50">
-                                <div className="relative flex items-center justify-center w-1 sm:w-1.5 h-1 sm:h-1.5">
-                                    <div className={`w-full h-full rounded-full transition-all duration-300 ${isRecording ? 'bg-rose-500' : !shouldRecord && isTimerRunning ? 'bg-amber-400' : 'bg-slate-300'}`} />
+                            <div className="flex items-center gap-2 bg-slate-100 dark:bg-slate-800/90 px-3 py-1.5 rounded-full border border-slate-200/60 dark:border-slate-700/60">
+                                <div className="relative flex items-center justify-center w-2 h-2">
+                                    <div className={`w-full h-full rounded-full transition-all duration-300 ${isRecording ? 'bg-rose-500' : !shouldRecord && isTimerRunning ? 'bg-amber-400' : 'bg-slate-400 dark:bg-slate-500'}`} />
                                     {isRecording && (
                                         <div className="absolute inset-0 w-full h-full rounded-full bg-rose-500 animate-ping opacity-40" />
                                     )}
                                 </div>
-                                <span className={`text-[7px] sm:text-[9px] md:text-[11px] font-black uppercase tracking-[0.2em] transition-colors duration-300 ${isRecording ? 'text-indigo-900' : !shouldRecord && isTimerRunning ? 'text-amber-600' : 'text-slate-400'}`}>
-                                    {isRecording ? 'Recording' : !shouldRecord && isTimerRunning ? 'Mic Paused' : 'Mic Off'}
+                                <span className={`text-[10px] sm:text-xs font-bold uppercase tracking-wider transition-colors duration-300 ${isRecording ? 'text-slate-900 dark:text-white' : !shouldRecord && isTimerRunning ? 'text-amber-600 dark:text-amber-400' : 'text-slate-500 dark:text-slate-400'}`}>
+                                    {isRecording ? 'Live Recording' : !shouldRecord && isTimerRunning ? 'Mic Paused' : 'Mic Off'}
                                 </span>
                             </div>
                         </div>
@@ -317,42 +317,43 @@ const LiveAnswerBox = ({ isTimerRunning, micEnabled = true, timer, maxTimer, onS
                     {isTimerRunning && (
                         <div className="w-full max-w-sm px-2">
                             <div className="flex items-center justify-between mb-1 px-0.5">
-                                <span className="text-[8px] font-black text-slate-300 uppercase tracking-widest">Efficiency Window</span>
-                                <span className={`text-[10px] font-black tabular-nums ${timer <= 10 ? 'text-rose-500 animate-pulse' : 'text-indigo-500'}`}>
+                                <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Answer Window</span>
+                                <span className={`text-xs font-mono font-bold tabular-nums ${timer <= 10 ? 'text-rose-500 animate-pulse' : 'text-indigo-600 dark:text-indigo-400'}`}>
                                     {String(Math.floor(timer / 60)).padStart(2, '0')}:{String(timer % 60).padStart(2, '0')}
                                 </span>
                             </div>
-                            <div className="h-1 bg-slate-50 rounded-full overflow-hidden border border-slate-100/50 shadow-inner">
+                            <div className="h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden border border-slate-200/50 dark:border-slate-700/50">
                                 <motion.div
                                     initial={{ width: '100%' }}
                                     animate={{ width: `${timerPct}%` }}
-                                    className={`h-full rounded-full transition-colors duration-1000 ${timer <= 10 ? 'bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.4)]' : 'bg-gradient-to-r from-indigo-500 to-indigo-600'}`}
+                                    className={`h-full rounded-full transition-colors duration-500 ${timer <= 10 ? 'bg-rose-500' : 'bg-indigo-600 dark:bg-indigo-500'}`}
                                 />
                             </div>
                         </div>
                     )}
 
-                    <div className={`flex items-center gap-2 md:gap-3 w-full ${layout === 'sidebar' ? 'flex-col' : 'flex-row'}`}>
+                    <div className={`flex items-center gap-2.5 w-full ${layout === 'sidebar' ? 'flex-col' : 'flex-row'}`}>
                         <button
+                            type="button"
                             onClick={handleSubmit}
                             disabled={isSubmitting || (!isRecording && !typedText.trim())}
-                            className={`flex-1 flex items-center justify-center gap-2 px-6 py-2.5 sm:py-3 md:py-5 rounded-xl md:rounded-[2rem] font-bold text-[10px] md:text-sm uppercase tracking-[0.2em] transition-all shadow-lg active:scale-95 ${isSubmitting || (!isRecording && !typedText.trim())
-                                ? 'bg-slate-50 text-slate-300 border border-slate-100'
-                                : 'bg-gradient-to-r from-indigo-600 to-violet-700 text-white shadow-indigo-200/50 hover:shadow-indigo-300/50'
+                            className={`flex-1 flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider transition-all shadow-xs active:scale-[0.98] cursor-pointer ${isSubmitting || (!isRecording && !typedText.trim())
+                                ? 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 border border-slate-200/60 dark:border-slate-700/60 cursor-not-allowed'
+                                : 'bg-indigo-600 hover:bg-indigo-700 text-white'
                                 }`}
                         >
-                            <span>{isSubmitting ? 'Processing' : 'Commit'}</span>
+                            <span>{isSubmitting ? 'Evaluating...' : 'Submit Answer'}</span>
                         </button>
 
                         {onEndInterview && (
                             <button
                                 onClick={() => { stopAll(); onEndInterview?.(); }}
-                                className={`flex items-center justify-center gap-2 w-12 h-12 md:w-auto md:h-auto md:px-6 md:py-5 bg-white border border-rose-100 text-rose-500 hover:bg-rose-50 rounded-xl md:rounded-[2rem] transition-all shadow-sm shrink-0`}
-                                title="Terminate Early"
+                                className="flex items-center justify-center gap-1.5 px-4 py-2.5 bg-white dark:bg-slate-800 border border-rose-200 dark:border-rose-900/60 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-xl transition-colors shadow-xs shrink-0 cursor-pointer"
+                                title="End Session"
                                 type="button"
                             >
-                                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" /></svg>
-                                <span className={`text-[10px] md:text-sm font-black uppercase tracking-widest hidden md:inline`}>End</span>
+                                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" /></svg>
+                                <span className="text-xs font-bold uppercase tracking-wider">End</span>
                             </button>
                         )}
                     </div>
@@ -365,25 +366,27 @@ const LiveAnswerBox = ({ isTimerRunning, micEnabled = true, timer, maxTimer, onS
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
-                            className="absolute inset-0 z-[60] bg-white/95 backdrop-blur-md rounded-[2.5rem] flex flex-col items-center justify-center text-center p-8 border border-rose-100 shadow-2xl"
+                            className="absolute inset-0 z-[60] bg-white/95 dark:bg-slate-900/95 backdrop-blur-md rounded-2xl sm:rounded-3xl flex flex-col items-center justify-center text-center p-6 border border-rose-200 dark:border-rose-800/80 shadow-xl"
                         >
-                            <div className="w-16 h-16 bg-rose-50 text-rose-500 rounded-2xl flex items-center justify-center mb-6 border border-rose-100">
-                                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" /></svg>
+                            <div className="w-12 h-12 bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 rounded-xl flex items-center justify-center mb-4 border border-rose-200 dark:border-rose-900/60">
+                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" /></svg>
                             </div>
-                            <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight mb-2">Microphone Blocked</h3>
-                            <p className="text-slate-500 text-sm font-medium leading-relaxed max-w-xs mb-8">
-                                Please click the 🔒 <b>lock icon</b> in your browser's address bar, enable the <b>Microphone</b>, and then try again.
+                            <h3 className="text-base font-bold text-slate-900 dark:text-white uppercase tracking-wider mb-1.5">Microphone Blocked</h3>
+                            <p className="text-slate-500 dark:text-slate-400 text-xs leading-relaxed max-w-xs mb-6">
+                                Please click the lock icon in your browser address bar, allow microphone access, and then click retry.
                             </p>
-                            <div className="flex flex-col gap-3 w-full max-w-[240px]">
+                            <div className="flex flex-col gap-2.5 w-full max-w-[220px]">
                                 <button
+                                    type="button"
                                     onClick={handleRetryPermission}
-                                    className="w-full py-4 bg-indigo-600 text-white font-black text-xs uppercase tracking-widest rounded-xl shadow-lg hover:bg-slate-900 transition-all active:scale-95"
+                                    className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs uppercase tracking-wider rounded-xl shadow-xs transition-colors cursor-pointer"
                                 >
-                                    I've Enabled It - Retry
+                                    Retry Access
                                 </button>
                                 <button
+                                    type="button"
                                     onClick={handleDismissPermission}
-                                    className="text-slate-400 font-bold text-[10px] uppercase tracking-widest hover:text-slate-600"
+                                    className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 font-semibold text-xs py-1 transition-colors cursor-pointer"
                                 >
                                     Dismiss
                                 </button>
